@@ -182,7 +182,7 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showDonateSheet) {
-            SheetWrapperView(title: "感谢您支持开发者！（内容待补充）") {
+            SheetWrapperView(title: "捐赠作者") {
                 showDonateSheet = false
             }
         }
