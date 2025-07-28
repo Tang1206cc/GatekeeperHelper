@@ -1,9 +1,15 @@
-// SheetWrapperView.swift
+//
+//  SheetWrapperView.swift
+//  GatekeeperHelper
+//
+
 import SwiftUI
 
 struct SheetWrapperView: View {
     let title: String
     let onClose: () -> Void
+
+    @StateObject private var sipChecker = SIPStatusChecker()
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -31,80 +37,164 @@ struct SheetWrapperView: View {
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.2))
                                     .frame(width: 120, height: 120)
-                                    .overlay(
-                                        Text("微信")
-                                            .foregroundColor(.gray)
-                                    )
-                                Text("微信")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .overlay(Text("微信").foregroundColor(.gray))
+                                Text("微信").font(.caption).foregroundColor(.secondary)
                             }
 
                             VStack(spacing: 8) {
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.2))
                                     .frame(width: 120, height: 120)
-                                    .overlay(
-                                        Text("支付宝")
-                                            .foregroundColor(.gray)
-                                    )
-                                Text("支付宝")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .overlay(Text("支付宝").foregroundColor(.gray))
+                                Text("支付宝").font(.caption).foregroundColor(.secondary)
                             }
                         }
                         .padding(.top, 8)
 
                         Spacer(minLength: 12)
                     }
-                } else if title.contains("联系") {
-                    // ✅ 联系&反馈弹窗内容
-                    VStack(spacing: 20) {
+
+                } else if title.contains("关闭 SIP") {
+                    // ✅ 关闭 SIP 弹窗内容
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            Text("关闭系统完整性保护（SIP）")
+                                .font(.title2)
+                                .bold()
+
+                            Text("⚠️ 请谨慎操作！非必要不要关闭 SIP。")
+                                .font(.body)
+                                .foregroundColor(.red)
+                                .bold()
+
+                            Text("确保您是在主页所有选项都尝试过后仍然无法解决 App 启动问题，才使用此方法。")
+                                .foregroundColor(.secondary)
+
+                            Divider()
+
+                            Text("📘 什么是 SIP？")
+                                .font(.headline)
+                            Text("SIP（System Integrity Protection）是 Apple 自 OS X 10.11 起引入的一项安全机制，用于防止恶意软件修改系统文件。关闭 SIP 后，您将获得对 macOS 系统更深层级的控制权限，但也会增加系统风险。")
+
+                            Divider()
+
+                            Text("📌 为什么要关闭 SIP？")
+                                .font(.headline)
+                            Text("""
+在 macOS 11 Big Sur 之前，关闭 SIP 可用于降级或删除预装 App（如 iTunes、Safari 等）。现在，它主要用于让部分修改过的 App（如破解软件、未签名工具）正常运行。
+
+如果您的 App 无法通过 xattr 或 codesign 解锁，请尝试关闭 SIP。
+""")
+
+                            Divider()
+
+                            Text("🔍 如何判断当前是否关闭 SIP？")
+                                .font(.headline)
+
+                            HStack {
+                                Button("一键判断") {
+                                    sipChecker.checkStatus()
+                                }
+
+                                Text(sipChecker.getStatusSymbol())
+                                    .font(.body)
+                                    .foregroundColor(.secondary)
+                                    .padding(.leading, 6)
+                            }
+
+                            CodeBlock(command: "csrutil status")
+
+                            Divider()
+
+                            Text("❌ 如何关闭 SIP")
+                                .font(.headline)
+
+                            Text("注意：必须进入“恢复模式”才能关闭 SIP，且操作中可能需要输入 y/n 确认，务必仔细阅读终端提示。")
+
+                            Text("🔧 步骤：")
+                                .bold()
+
+                            Text("""
+1）进入恢复模式：
+   - Intel 机型：重启时按住 Command + R，直到出现 Apple 标志。
+   - Apple Silicon 机型：关机后，长按电源按钮直到出现“选项”，进入恢复模式。
+
+2）在菜单栏选择“实用工具” > 打开“终端”
+
+3）执行以下命令：
+""")
+                            CodeBlock(command: "csrutil disable")
+
+                            Text("如果提示 [y/n]，请输入 y 并回车。")
+
+                            Text("4）重启电脑以完成操作：")
+                            CodeBlock(command: "reboot")
+
+                            Divider()
+
+                            Text("✅ 如何重新开启 SIP")
+                                .font(.headline)
+
+                            Text("""
+重复步骤1-2后，在“终端”输入以下命令：
+
+如果提示 [y/n]，同样输入 y 并回车。
+""")
+                            CodeBlock(command: "csrutil enable")
+
+                            Text("然后再次执行：")
+                            CodeBlock(command: "reboot")
+
+                            Divider()
+
+                            Text("⚠️ 没有特殊需要，不要禁用 SIP！")
+                                .font(.headline)
+                                .foregroundColor(.red)
+                                .bold()
+                        }
+                        .padding()
+                    }
+
+                } else if title.contains("联系") || title.contains("反馈") {
+                    // ✅ 联系与反馈弹窗内容
+                    VStack(alignment: .leading, spacing: 16) {
                         Text("联系与反馈")
                             .font(.title2)
                             .bold()
-                            .padding(.top, 20)
 
-                        Text("如果您有任何建议或意见，欢迎通过下面的方式联系作者或加入讨论。")
+                        Text("如果您在使用过程中遇到问题，或有任何建议，欢迎通过以下方式联系我：")
                             .font(.body)
                             .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("📧 邮箱：")
-                                    .bold()
-                                Text("1767707905@qq.com")
-                                    .foregroundColor(.primary)
-                            }
+                        Divider()
 
-                            HStack {
-                                Text("💬 官方讨论 Q 群：")
-                                    .bold()
-                                Text("850780538")
-                                    .foregroundColor(.primary)
-                            }
+                        VStack(alignment: .leading, spacing: 10) {
+                            Label("邮箱：1767707905@qq.com", systemImage: "envelope")
+                            Label("GitHub 项目主页", systemImage: "link")
+                                .onTapGesture {
+                                    if let url = URL(string: "https://github.com/Tang1206cc/GatekeeperHelper") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }
+                            Label("QQ 讨论群：850780538", systemImage: "message")
                         }
                         .font(.body)
-                        .padding(.horizontal, 24)
-                        .padding(.top, 8)
 
                         Spacer()
                     }
+                    .padding()
+
                 } else {
-                    // ✅ 其他通用弹窗内容（保留）
                     VStack(alignment: .leading, spacing: 16) {
                         Text(title)
                             .font(.title3)
                             .bold()
-
                         Spacer()
                     }
                     .padding()
                 }
             }
-            .frame(width: 420, height: 360)
+            .frame(width: 520, height: 460)
             .background(Color(NSColor.windowBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
@@ -118,4 +208,8 @@ struct SheetWrapperView: View {
             .buttonStyle(.plain)
         }
     }
+}
+
+#Preview {
+    SheetWrapperView(title: "联系&反馈") {}
 }
