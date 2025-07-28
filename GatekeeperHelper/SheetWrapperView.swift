@@ -125,7 +125,7 @@ struct SheetWrapperView: View {
 """)
                             CodeBlock(command: "csrutil disable")
 
-                            Text("如果提示 [y/n]，请输入 y 并回车。")
+                            Text("如果提示 [y/n]，请输入 y 并回车；提示Password或出现小钥匙图标时输入电脑开机密码即可，输入过程不可见，确保正确输入后按下回车键即可。")
 
                             Text("4）重启电脑以完成操作：")
                             CodeBlock(command: "reboot")
@@ -169,14 +169,20 @@ struct SheetWrapperView: View {
                         Divider()
 
                         VStack(alignment: .leading, spacing: 10) {
+                            Label("B站：昵称待定（UID:3546715558775600）「点击可打开」", systemImage: "play.rectangle.fill")
+                                .onTapGesture {
+                                    if let url = URL(string: "https://b23.tv/XtNWBjt") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }//链接到bilibili个人主页
                             Label("邮箱：1767707905@qq.com", systemImage: "envelope")
-                            Label("GitHub 项目主页", systemImage: "link")
+                            Label("QQ 讨论群：850780538", systemImage: "message")
+                            Label("GitHub 项目仓库：https://github.com/Tang1206cc/GatekeeperHelper", systemImage: "link")
                                 .onTapGesture {
                                     if let url = URL(string: "https://github.com/Tang1206cc/GatekeeperHelper") {
                                         NSWorkspace.shared.open(url)
                                     }
-                                }
-                            Label("QQ 讨论群：850780538", systemImage: "message")
+                                }//链接到GitHub对应仓库
                         }
                         .font(.body)
 
