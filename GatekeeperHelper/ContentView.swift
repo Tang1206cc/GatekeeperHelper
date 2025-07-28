@@ -177,9 +177,7 @@ struct ContentView: View {
         }
         // 弹窗内容
         .sheet(isPresented: $showSIPSheet) {
-            SheetWrapperView(title: "关闭 SIP 的弹窗内容（待补充）") {
-                showSIPSheet = false
-            }
+            CloseSIPSheetView()
         }
         .sheet(isPresented: $showDonateSheet) {
             SheetWrapperView(title: "捐赠作者") {
