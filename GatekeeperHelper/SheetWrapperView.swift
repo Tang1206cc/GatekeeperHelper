@@ -9,6 +9,7 @@ struct SheetWrapperView: View {
         ZStack(alignment: .topTrailing) {
             VStack {
                 if title.contains("捐赠") {
+                    // ✅ 捐赠弹窗内容
                     VStack(spacing: 16) {
                         Text("感谢您的支持 ❤️")
                             .font(.title2)
@@ -56,7 +57,43 @@ struct SheetWrapperView: View {
 
                         Spacer(minLength: 12)
                     }
+                } else if title.contains("联系") {
+                    // ✅ 联系&反馈弹窗内容
+                    VStack(spacing: 20) {
+                        Text("联系与反馈")
+                            .font(.title2)
+                            .bold()
+                            .padding(.top, 20)
+
+                        Text("如果您有任何建议或意见，欢迎通过下面的方式联系作者或加入讨论。")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("📧 邮箱：")
+                                    .bold()
+                                Text("1767707905@qq.com")
+                                    .foregroundColor(.primary)
+                            }
+
+                            HStack {
+                                Text("💬 官方讨论 Q 群：")
+                                    .bold()
+                                Text("850780538")
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        .font(.body)
+                        .padding(.horizontal, 24)
+                        .padding(.top, 8)
+
+                        Spacer()
+                    }
                 } else {
+                    // ✅ 其他通用弹窗内容（保留）
                     VStack(alignment: .leading, spacing: 16) {
                         Text(title)
                             .font(.title3)

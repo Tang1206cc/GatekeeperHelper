@@ -187,7 +187,7 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showFeedbackSheet) {
-            SheetWrapperView(title: "反馈入口（内容待补充）") {
+            SheetWrapperView(title: "联系&反馈") {
                 showFeedbackSheet = false
             }
         }
