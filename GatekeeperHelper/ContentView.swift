@@ -33,7 +33,7 @@ let knownIssues: [UnlockIssue] = [
     ),
     UnlockIssue(
         title: "“xxx”意外退出",
-        description: "Apple 会定期发布安全补丁，吊销一些“特定”的数字签名。在没有证书的情况下运行应用程序会导致错误消息，并且应用程序意外退出。所以需要对应用进行签名，有时也需要关闭 SIP。",
+        description: "Apple 会定期发布安全补丁，吊销一些“特定”的数字签名。在没有证书的情况下运行应用程序会导致错误消息，并且应用程序意外退出。所以需要对应用或其Unix可执行文件进行签名，有时也需要关闭 SIP。",
         imageName: "issue2-placeholder"
     )
 ]

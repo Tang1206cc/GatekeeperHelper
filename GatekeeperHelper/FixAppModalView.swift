@@ -2,8 +2,6 @@
 //  FixAppModalView.swift
 //  GatekeeperHelper
 //
-//  Created by 唐梓耀 on 2025/7/26.
-//
 
 import Foundation
 import SwiftUI
@@ -12,8 +10,13 @@ import AppKit
 struct FixAppModalView: View {
     let appURL: URL
     let issue: UnlockIssue
-    @Binding var selectedMethod: UnlockMethod
     @Environment(\.dismiss) var dismiss
+
+    // 用于“已损坏”问题
+    @Binding var selectedMethod: UnlockMethod
+
+    // 用于“意外退出”问题
+    @State private var selectedAdvancedMethod: AdvancedUnlockMethod = .appBundle
 
     var appIcon: NSImage? {
         NSWorkspace.shared.icon(forFile: appURL.path)
@@ -39,6 +42,7 @@ struct FixAppModalView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
 
+            // ✅ 针对第一类问题
             if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
                 Picker("选择解锁方式", selection: $selectedMethod) {
                     ForEach(UnlockMethod.allCases, id: \.self) { method in
@@ -50,12 +54,28 @@ struct FixAppModalView: View {
                 .padding(.horizontal)
             }
 
+            // ✅ 针对第二类问题
+            if issue.title == "“xxx”意外退出" {
+                Picker("选择签名方式", selection: $selectedAdvancedMethod) {
+                    ForEach(AdvancedUnlockMethod.allCases, id: \.self) { method in
+                        Text(method.description).tag(method)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal)
+            }
+
             Button("立即修复") {
                 switch issue.title {
-                case "“xxx”意外退出":
-                    Unlocker.codesignApp(at: appURL)
-                default:
+                case "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”":
                     Unlocker.unlock(appAt: appURL, with: selectedMethod)
+
+                case "“xxx”意外退出":
+                    Unlocker.unlock(appAt: appURL, withAdvancedMethod: selectedAdvancedMethod)
+
+                default:
+                    break
                 }
                 dismiss()
             }
