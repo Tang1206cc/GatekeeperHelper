@@ -35,6 +35,11 @@ let knownIssues: [UnlockIssue] = [
         title: "“xxx”意外退出",
         description: "Apple 会定期发布安全补丁，吊销一些“特定”的数字签名。在没有证书的情况下运行应用程序会导致错误消息，并且应用程序意外退出。所以需要对应用或其Unix可执行文件进行签名，有时也需要关闭 SIP。",
         imageName: "issue2-placeholder"
+    ),
+    UnlockIssue(
+        title: "“xxx软件打开失败”",
+        description: "这种情况是因为当前 App 包内的 Unix 可执行文件显示为白色的文本文稿，需要赋予其可执行权限，变成黑色的 Unix 可执行文件后即可正常启动应用程序。",
+        imageName: "issue3-placeholder"
     )
 ]
 
@@ -51,12 +56,12 @@ struct ContentView: View {
     @State private var showHistorySheet = false
 
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             VStack(spacing: 0) {
                 // 顶部栏：标题 + 功能按钮
                 HStack(alignment: .center) {
                     Text("请选择您遇到的 App 启动问题")
-                        .font(SwiftUI.Font.title2)
+                        .font(.title2)
                         .bold()
                         .frame(height: 28)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -135,6 +140,29 @@ struct ContentView: View {
 
                                 Divider()
 
+                                // ✅ 仅在第一项（“xxx已损坏…”）下显示“恢复 Gatekeeper”提示与按钮
+                                if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "shield.lefthalf.filled")
+                                            .imageScale(.medium)
+                                            .foregroundColor(.blue)
+                                        Text("如果你之前使用过“永久禁用”选项，可一键恢复 Gatekeeper：")
+                                            .font(.callout)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Button("恢复 Gatekeeper") {
+                                            Unlocker.restoreGatekeeper()
+                                        }
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 10)
+                                        .background(Color.blue.opacity(0.1))
+                                        .cornerRadius(6)
+                                    }
+                                    .padding(.vertical, 2)
+                                }
+
+                                // 拖入 / 选择 App 的区域（所有问题共用）
                                 DropAreaView { url in
                                     selectedAppURL = url
                                     print("用户拖入或选择的 App 路径：\(url.path)")
@@ -142,7 +170,11 @@ struct ContentView: View {
                                 .frame(height: 180)
                                 .padding(.top, 10)
                                 .sheet(item: $selectedAppURL) { url in
-                                    FixAppModalView(appURL: url, issue: selectedIssue ?? knownIssues[0], selectedMethod: $selectedUnlockMethod)
+                                    FixAppModalView(
+                                        appURL: url,
+                                        issue: selectedIssue ?? knownIssues[0],
+                                        selectedMethod: $selectedUnlockMethod
+                                    )
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -195,7 +227,7 @@ struct ContentView: View {
             HistorySheetView()
         }
         .sheet(isPresented: $showSettingsSheet) {
-            SheetWrapperView(title: "设置界面（内容待补充）") {
+            SheetWrapperView(title: "设置界面（待补充）") {
                 showSettingsSheet = false
             }
         }

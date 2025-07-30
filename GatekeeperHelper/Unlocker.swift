@@ -7,39 +7,124 @@ import Foundation
 import AppKit
 
 struct Unlocker {
-    // 用于第一个问题：“xxx已损坏”
+
+    // MARK: - 第一个问题：“xxx已损坏…”
     static func unlock(appAt url: URL, with method: UnlockMethod) {
         let path = url.path
 
-        let command: String
         switch method {
         case .xattr:
-            command = "xattr -r -d com.apple.quarantine \"\(path)\""
+            // ① 先判断是否真的带 quarantine
+            if !isQuarantined(path: path) {
+                showAlert(
+                    title: "无需修复",
+                    message: "该 App 不包含隔离属性（com.apple.quarantine），已可直接尝试打开。"
+                )
+                return
+            }
+
+            // ② 执行移除 quarantine
+            let command = "/usr/bin/xattr -r -d com.apple.quarantine \"\(path)\""
+            let result: AuthResult = AuthorizationBridge.run(command: command)
+
+            // ③ 二次校验：确认 quarantine 已移除
+            let nowQuarantined = isQuarantined(path: path)
+            let success = (result == .success) && !nowQuarantined
+
+            // 历史记录（仅在实际执行过时记录）
+            RepairHistoryManager.shared.addRecord(
+                appName: url.lastPathComponent,
+                method: "xattr",
+                success: success
+            )
+
+            if success {
+                showAlert(title: "执行成功", message: "已移除隔离属性（quarantine）。")
+            } else {
+                let msg = (result == .success)
+                ? "命令已执行，但未检测到隔离属性被移除。"
+                : "命令被取消或失败。"
+                showAlert(title: "执行失败", message: "\(msg)\n命令已复制，可在终端手动执行：\n\(command)")
+                copyToPasteboard(command)
+            }
+
         case .spctl:
-            command = "spctl --master-disable"
+            // 永久禁用 Gatekeeper（危险）
+            let command = "/usr/sbin/spctl --master-disable"
+            let result: AuthResult = AuthorizationBridge.run(command: command)
+
+            // 结果不做状态二次判定（禁用后系统状态显示“允许任何来源”）
+            let success = (result == .success)
+            RepairHistoryManager.shared.addRecord(
+                appName: "System",
+                method: "spctl_disable",
+                success: success
+            )
+
+            if success {
+                showAlert(title: "已禁用 Gatekeeper", message: "系统已启用“任何来源”。")
+            } else {
+                showAlert(title: "禁用失败", message: "命令已复制，可在终端手动执行：\n\(command)")
+                copyToPasteboard(command)
+            }
+        }
+    }
+
+    // MARK: - 一键恢复 Gatekeeper（统一默认恢复）
+    static func restoreGatekeeper() {
+        // ① 先判断：如果已经开启，则直接提示“无需恢复”
+        if gatekeeperIsEnabled() {
+            showAlert(
+                title: "无需恢复",
+                message: """
+                当前系统已取消“任何来源”，启用了 Gatekeeper 保护。
+                你可前往“设置 > 隐私与安全性 > 允许从以下来源的应用程序”，做出保护策略的进一步选择：
+                • 允许 App Store 与已知开发者（推荐）
+                • 仅允许 App Store
+                点击“好”，我将为你打开该页面。
+                """
+            )
+            openSecurityPrivacyPane()
+            return
         }
 
-        print("即将执行（带管理员权限）：\(command)")
-
+        // ② 执行开启命令
+        let command = "/usr/sbin/spctl --master-enable"
         let result: AuthResult = AuthorizationBridge.run(command: command)
-        let wasSuccess = (result == .success)
 
+        // ③ 二次校验：确认真的已开启
+        let enabledNow = gatekeeperIsEnabled()
+        let success = (result == .success) && enabledNow
+
+        // 历史记录
         RepairHistoryManager.shared.addRecord(
-            appName: url.lastPathComponent,
-            method: method.description,
-            success: wasSuccess
+            appName: "System",
+            method: "spctl_enable",
+            success: success
         )
 
-        switch result {
-        case .success:
-            showAlert(title: "执行成功", message: "App 解锁命令已自动执行")
-        case .failure(let error):
-            showAlert(title: "执行失败", message: error + "\n命令已复制，可手动粘贴至终端。")
+        if success {
+            showAlert(
+                title: "已恢复 Gatekeeper",
+                message: """
+                系统已取消“任何来源”，启用了 Gatekeeper 保护。
+                你可前往“设置 > 隐私与安全性 > 允许从以下来源的应用程序”，做出保护策略的进一步选择：
+                • 允许 App Store 与已知开发者（推荐）
+                • 仅允许 App Store
+                点击“好”，我将为你打开该页面。
+                """
+            )
+            openSecurityPrivacyPane()
+        } else {
+            let msg = (result == .success)
+            ? "命令已执行，但系统仍未检测到 Gatekeeper 开启。"
+            : "User canceled."
+            showAlert(title: "恢复失败", message: "\(msg)\n命令已复制，可在终端手动执行：\n\(command)")
             copyToPasteboard(command)
         }
     }
 
-    // 用于第二个问题：“xxx意外退出”
+    // MARK: - 第二个问题：“xxx 意外退出”
     static func unlock(appAt url: URL, withAdvancedMethod method: AdvancedUnlockMethod) {
         switch method {
         case .appBundle:
@@ -49,68 +134,123 @@ struct Unlocker {
         }
     }
 
-    // ✅ App Bundle 签名
+    // App Bundle 签名
     static func codesignApp(at url: URL) {
         let path = url.path
-        let command = "codesign --force --deep --sign - \"\(path)\""
-
-        print("即将执行签名命令（带管理员权限）：\(command)")
+        let command = "/usr/bin/codesign --force --deep --sign - \"\(path)\""
 
         let result: AuthResult = AuthorizationBridge.run(command: command)
-        let wasSuccess = (result == .success)
+        let success = (result == .success)
 
         RepairHistoryManager.shared.addRecord(
             appName: url.lastPathComponent,
             method: "codesign_bundle",
-            success: wasSuccess
+            success: success
         )
 
-        switch result {
-        case .success:
-            showAlert(title: "签名成功", message: "App 签名命令已自动执行")
-        case .failure(let error):
-            showAlert(title: "签名失败", message: error + "\n命令已复制，可手动粘贴至终端。")
+        if success {
+            showAlert(title: "签名成功", message: "App 签名命令已自动执行。")
+        } else {
+            showAlert(title: "签名失败", message: "命令已复制，可手动粘贴至终端：\n\(command)")
             copyToPasteboard(command)
         }
     }
 
-    // ✅ Unix 可执行文件签名
+    // 可执行文件签名
     static func codesignExecutable(in appURL: URL) {
-        let execPath = appURL.appendingPathComponent("Contents/MacOS")
-
+        let execDir = appURL.appendingPathComponent("Contents/MacOS")
         do {
-            let contents = try FileManager.default.contentsOfDirectory(at: execPath, includingPropertiesForKeys: nil, options: [])
-            if let executable = contents.first {
-                let path = executable.path
-                let command = "codesign --force --sign - \"\(path)\""
-
-                print("即将执行可执行文件签名命令：\(command)")
-
-                let result: AuthResult = AuthorizationBridge.run(command: command)
-                let wasSuccess = (result == .success)
-
-                RepairHistoryManager.shared.addRecord(
-                    appName: executable.lastPathComponent,
-                    method: "codesign_exec",
-                    success: wasSuccess
-                )
-
-                switch result {
-                case .success:
-                    showAlert(title: "签名成功", message: "可执行文件签名命令已自动执行")
-                case .failure(let error):
-                    showAlert(title: "签名失败", message: error + "\n命令已复制，可手动粘贴至终端。")
-                    copyToPasteboard(command)
-                }
-            } else {
-                showAlert(title: "未找到可执行文件", message: "在 Contents/MacOS 中未找到可执行文件。")
+            let contents = try FileManager.default.contentsOfDirectory(at: execDir, includingPropertiesForKeys: nil, options: [])
+            guard let executable = contents.first else {
+                showAlert(title: "未找到可执行文件", message: "在 Contents/MacOS 中未发现可执行文件。")
+                return
             }
+
+            let path = executable.path
+            let command = "/usr/bin/codesign --force --sign - \"\(path)\""
+
+            let result: AuthResult = AuthorizationBridge.run(command: command)
+            let success = (result == .success)
+
+            RepairHistoryManager.shared.addRecord(
+                appName: executable.lastPathComponent,
+                method: "codesign_exec",
+                success: success
+            )
+
+            if success {
+                showAlert(title: "签名成功", message: "可执行文件签名命令已自动执行。")
+            } else {
+                showAlert(title: "签名失败", message: "命令已复制，可手动粘贴至终端：\n\(command)")
+                copyToPasteboard(command)
+            }
+
         } catch {
             showAlert(title: "出错了", message: "无法读取 Contents/MacOS 文件夹：\(error.localizedDescription)")
         }
     }
 
-    // ✅ 通用弹窗
+    // MARK: - 第三个问题：“软件打开失败（chmod +x）”
+    static func chmodFixExecutable(in appURL: URL) {
+        let execDir = appURL.appendingPathComponent("Contents/MacOS")
+
+        do {
+            let contents = try FileManager.default.contentsOfDirectory(at: execDir, includingPropertiesForKeys: [.isRegularFileKey], options: [])
+            // 找出没有可执行权限的文件（不检查扩展名，按权限判断）
+            let nonExecutable = contents.first(where: { !checkExecutablePermission(of: $0) })
+
+            guard let target = nonExecutable else {
+                showAlert(title: "无需修复", message: "此 App 包内的可执行文件已具备可执行权限。")
+                return
+            }
+
+            let path = target.path
+            let command = "/bin/chmod +x \"\(path)\""
+
+            let result: AuthResult = AuthorizationBridge.run(command: command)
+            let success = (result == .success) && checkExecutablePermission(of: target)
+
+            RepairHistoryManager.shared.addRecord(
+                appName: appURL.lastPathComponent,
+                method: "chmod",
+                success: success
+            )
+
+            if success {
+                showAlert(title: "修复成功", message: "已为可执行文件添加执行权限。")
+            } else {
+                showAlert(title: "修复失败", message: "命令已复制，请在终端手动执行：\n\(command)")
+                copyToPasteboard(command)
+            }
+
+        } catch {
+            showAlert(title: "出错了", message: "无法访问 Contents/MacOS：\(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - 状态判断工具
+
+    /// Gatekeeper 是否开启（“任何来源”已取消）
+    private static func gatekeeperIsEnabled() -> Bool {
+        let result = runLocal(bin: "/usr/sbin/spctl", args: ["--status"])
+        // 正常情况下输出包含 “assessments enabled”
+        return result.output.lowercased().contains("assessments enabled")
+    }
+
+    /// 是否带 quarantine
+    private static func isQuarantined(path: String) -> Bool {
+        // xattr -p com.apple.quarantine path   -> 存在则退出码 0；不存在通常非 0
+        let r = runLocal(bin: "/usr/bin/xattr", args: ["-p", "com.apple.quarantine", path])
+        return r.status == 0
+    }
+
+    /// 文件是否具有可执行权限（任意 x 位）—— 用 FileManager 判断执行权限
+    private static func checkExecutablePermission(of fileURL: URL) -> Bool {
+        return FileManager.default.isExecutableFile(atPath: fileURL.path)
+    }
+
+    // MARK: - 公共小工具
+
     static func showAlert(title: String, message: String) {
         let alert = NSAlert()
         alert.messageText = title
@@ -119,10 +259,39 @@ struct Unlocker {
         alert.runModal()
     }
 
-    // ✅ 拷贝命令备用
     static func copyToPasteboard(_ string: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(string, forType: .string)
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(string, forType: .string)
+    }
+
+    /// 本地执行（不提权），便于读取输出/状态做校验
+    @discardableResult
+    private static func runLocal(bin: String, args: [String]) -> (status: Int32, output: String) {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: bin)
+        p.arguments = args
+
+        let pipe = Pipe()
+        p.standardOutput = pipe
+        p.standardError = pipe
+
+        do { try p.run() } catch {
+            return (status: -1, output: "run error: \(error.localizedDescription)")
+        }
+        p.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let out = String(data: data, encoding: .utf8) ?? ""
+        return (status: p.terminationStatus, output: out)
+    }
+
+    /// 打开“隐私与安全性”设置页（系统版本不同可能回退到设置首页）
+    private static func openSecurityPrivacyPane() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security") {
+            NSWorkspace.shared.open(url)
+        } else {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+        }
     }
 }

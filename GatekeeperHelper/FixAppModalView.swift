@@ -12,10 +12,10 @@ struct FixAppModalView: View {
     let issue: UnlockIssue
     @Environment(\.dismiss) var dismiss
 
-    // 用于“已损坏”问题
+    // 第一类问题：已损坏
     @Binding var selectedMethod: UnlockMethod
 
-    // 用于“意外退出”问题
+    // 第二类问题：意外退出
     @State private var selectedAdvancedMethod: AdvancedUnlockMethod = .appBundle
 
     var appIcon: NSImage? {
@@ -42,7 +42,7 @@ struct FixAppModalView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
 
-            // ✅ 针对第一类问题
+            // 第一类问题
             if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
                 Picker("选择解锁方式", selection: $selectedMethod) {
                     ForEach(UnlockMethod.allCases, id: \.self) { method in
@@ -54,7 +54,7 @@ struct FixAppModalView: View {
                 .padding(.horizontal)
             }
 
-            // ✅ 针对第二类问题
+            // 第二类问题
             if issue.title == "“xxx”意外退出" {
                 Picker("选择签名方式", selection: $selectedAdvancedMethod) {
                     ForEach(AdvancedUnlockMethod.allCases, id: \.self) { method in
@@ -73,6 +73,9 @@ struct FixAppModalView: View {
 
                 case "“xxx”意外退出":
                     Unlocker.unlock(appAt: appURL, withAdvancedMethod: selectedAdvancedMethod)
+
+                case "“xxx软件打开失败”":
+                    Unlocker.chmodFixExecutable(in: appURL)
 
                 default:
                     break

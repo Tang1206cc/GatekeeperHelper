@@ -1,13 +1,7 @@
-//
 //  AuthorizationBridge.swift
-//  GatekeeperHelper
-//
-//  Created by 唐梓耀 on 2025/7/25.
-//
 
 import Foundation
 
-// ✅ 必须加 Equatable，才能支持 == 判断
 enum AuthResult: Equatable {
     case success
     case failure(String)
@@ -15,13 +9,15 @@ enum AuthResult: Equatable {
 
 class AuthorizationBridge {
     static func run(command: String) -> AuthResult {
-        // 调用你已有的工具执行命令（例如基于 AppleScript 的授权执行）
-        let result = AuthorizationTool.runCommand(command)
-        
-        if result {
+        var err: NSString?
+        // 调用新的带错误输出的方法
+        let ok = AuthorizationTool.runCommand(command, error: &err)
+
+        if ok {
             return .success
         } else {
-            return .failure("命令执行失败，请确保你已允许权限")
+            let msg = (err as String?) ?? "命令执行失败，请检查权限或参数。"
+            return .failure(msg)
         }
     }
 }
