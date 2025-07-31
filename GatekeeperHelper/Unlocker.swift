@@ -23,12 +23,13 @@ struct Unlocker {
                 return
             }
 
-                        // ② 执行移除 quarantine
+            // ② 执行移除 quarantine
             let command = "/usr/bin/xattr -r -d com.apple.quarantine \"\(path)\""
             let result: AuthResult = AuthorizationBridge.run(command: command)
 
-            // ③ 以命令返回为准（移除“读回校验”避免误判）
-            let success = (result == .success)
+            // ③ 以“是否仍带 quarantine”为准，避免误报
+            let nowQuarantined = isQuarantined(path: path)
+            let success = !nowQuarantined
 
             // 历史记录（仅在实际执行过时记录）
             RepairHistoryManager.shared.addRecord(
@@ -40,35 +41,27 @@ struct Unlocker {
             if success {
                 showAlert(title: "执行成功", message: "已移除隔离属性（quarantine）。")
             } else {
-                let msg = (result == .success)
-                ? "命令已执行，但未检测到隔离属性被移除。"
-                : "命令被取消或失败。"
+                // 尝试给出更友好的失败信息
+                let msg: String = {
+                    if case .failure(let m) = result { return m }
+                    return "命令已执行，但未检测到隔离属性被移除。"
+                }()
                 showAlert(title: "执行失败", message: "\(msg)\n命令已复制，可在终端手动执行：\n\(command)")
                 copyToPasteboard(command)
             }
 
         case .spctl:
-            // 永久禁用 Gatekeeper（危险）仅执行命令 + 返回状态，不弹窗
+            // 永久禁用 Gatekeeper（危险）
+            // ✅ 仅执行命令，后续弹窗 / 跳转 / 历史记录均由 FixAppModalView 统一处理
             let command = "/usr/sbin/spctl --master-disable"
-            let result: AuthResult = AuthorizationBridge.run(command: command)
-
-            // ✅ 判断是否真的已关闭
-            let disabledNow = !gatekeeperIsEnabled()
-            let success = (result == .success) && disabledNow
-
-            RepairHistoryManager.shared.addRecord(
-                appName: "System",
-                method: "spctl_disable",
-                success: success
-            )
-
-            // 弹窗交由 FixAppModalView.swift 内部处理，不在此处提示
+            _ = AuthorizationBridge.run(command: command)
+            return
         }
     }
 
-    // MARK: - 一键恢复 Gatekeeper（统一默认恢复）
+    // MARK: - 一键恢复 Gatekeeper（状态优先判定）
     static func restoreGatekeeper() {
-        // ① 先判断：如果已经开启，则直接提示“无需恢复”
+        // ① 如果已经开启，则直接提示“无需恢复”并引导到设置
         if gatekeeperIsEnabled() {
             showAlert(
                 title: "无需恢复",
@@ -84,19 +77,17 @@ struct Unlocker {
             return
         }
 
-        // ② 执行开启命令（以返回值为准）
+        // ② 尝试开启
         let command = "/usr/sbin/spctl --master-enable"
         let result: AuthResult = AuthorizationBridge.run(command: command)
-        let success = (result == .success)
 
-        // 历史记录
-        RepairHistoryManager.shared.addRecord(
-            appName: "System",
-            method: "spctl_enable",
-            success: success
-        )
-
-        if success {
+        // ③ 以系统状态为准：只要现在是已开启，就视为成功
+        if gatekeeperIsEnabled() {
+            RepairHistoryManager.shared.addRecord(
+                appName: "System",
+                method: "spctl_enable",
+                success: true
+            )
             showAlert(
                 title: "已恢复 Gatekeeper",
                 message: """
@@ -108,11 +99,23 @@ struct Unlocker {
                 """
             )
             openSecurityPrivacyPane()
-        } else {
-            let msg = "User canceled 或命令失败。"
-            showAlert(title: "恢复失败", message: "\(msg)\n命令已复制，可在终端手动执行：\n\(command)")
-            copyToPasteboard(command)
+            return
         }
+
+        // ④ 仍未开启：视为失败，并记录历史
+        RepairHistoryManager.shared.addRecord(
+            appName: "System",
+            method: "spctl_enable",
+            success: false
+        )
+
+        let failMsg: String = {
+            if case .failure(let m) = result { return m }
+            return "命令已执行，但系统仍未检测到 Gatekeeper 开启。"
+        }()
+
+        showAlert(title: "恢复失败", message: "\(failMsg)\n命令已复制，可在终端手动执行：\n\(command)")
+        copyToPasteboard(command)
     }
 
     // MARK: - 第二个问题：“xxx 意外退出”
@@ -129,7 +132,6 @@ struct Unlocker {
     static func codesignApp(at url: URL) {
         let path = url.path
         let command = "/usr/bin/codesign --force --deep --sign - \"\(path)\""
-
         let result: AuthResult = AuthorizationBridge.run(command: command)
         let success = (result == .success)
 
@@ -142,7 +144,11 @@ struct Unlocker {
         if success {
             showAlert(title: "签名成功", message: "App 签名命令已自动执行。")
         } else {
-            showAlert(title: "签名失败", message: "命令已复制，可手动粘贴至终端：\n\(command)")
+            let msg: String = {
+                if case .failure(let m) = result { return m }
+                return "命令执行失败，请重试。"
+            }()
+            showAlert(title: "签名失败", message: "\(msg)\n命令已复制，可手动粘贴至终端：\n\(command)")
             copyToPasteboard(command)
         }
     }
@@ -159,7 +165,6 @@ struct Unlocker {
 
             let path = executable.path
             let command = "/usr/bin/codesign --force --sign - \"\(path)\""
-
             let result: AuthResult = AuthorizationBridge.run(command: command)
             let success = (result == .success)
 
@@ -172,7 +177,11 @@ struct Unlocker {
             if success {
                 showAlert(title: "签名成功", message: "可执行文件签名命令已自动执行。")
             } else {
-                showAlert(title: "签名失败", message: "命令已复制，可手动粘贴至终端：\n\(command)")
+                let msg: String = {
+                    if case .failure(let m) = result { return m }
+                    return "命令执行失败，请重试。"
+                }()
+                showAlert(title: "签名失败", message: "\(msg)\n命令已复制，可手动粘贴至终端：\n\(command)")
                 copyToPasteboard(command)
             }
 
@@ -197,7 +206,6 @@ struct Unlocker {
 
             let path = target.path
             let command = "/bin/chmod +x \"\(path)\""
-
             let result: AuthResult = AuthorizationBridge.run(command: command)
             let success = (result == .success) && checkExecutablePermission(of: target)
 
@@ -210,7 +218,11 @@ struct Unlocker {
             if success {
                 showAlert(title: "修复成功", message: "已为可执行文件添加执行权限。")
             } else {
-                showAlert(title: "修复失败", message: "命令已复制，请在终端手动执行：\n\(command)")
+                let msg: String = {
+                    if case .failure(let m) = result { return m }
+                    return "命令执行失败，请重试。"
+                }()
+                showAlert(title: "修复失败", message: "\(msg)\n命令已复制，请在终端手动执行：\n\(command)")
                 copyToPasteboard(command)
             }
 
@@ -222,7 +234,7 @@ struct Unlocker {
     // MARK: - 状态判断工具
 
     /// Gatekeeper 是否开启（“任何来源”已取消）
-    static func gatekeeperIsEnabled() -> Bool {
+    private static func gatekeeperIsEnabled() -> Bool {
         let result = runLocal(bin: "/usr/sbin/spctl", args: ["--status"])
         // 正常情况下输出包含 “assessments enabled”
         return result.output.lowercased().contains("assessments enabled")
@@ -235,8 +247,9 @@ struct Unlocker {
         return r.status == 0
     }
 
-    /// 文件是否具有可执行权限（任意 x 位）—— 用 FileManager 判断执行权限
+    /// 文件是否具有可执行权限（任意 x 位）
     private static func checkExecutablePermission(of fileURL: URL) -> Bool {
+        // 用 FileManager 判断执行权限
         return FileManager.default.isExecutableFile(atPath: fileURL.path)
     }
 
