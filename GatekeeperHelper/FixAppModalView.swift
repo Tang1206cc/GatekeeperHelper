@@ -69,7 +69,7 @@ struct FixAppModalView: View {
             Button("立即修复") {
                 switch issue.title {
                 case "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”":
-                    if selectedMethod == .spctl {
+                    if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" && selectedMethod == .spctl {
                         // 永久禁用 Gatekeeper（危险）策略
                         let command = "/usr/sbin/spctl --master-disable"
                         let result: AuthResult = AuthorizationBridge.run(command: command)

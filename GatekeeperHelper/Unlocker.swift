@@ -49,24 +49,21 @@ struct Unlocker {
             }
 
         case .spctl:
-            // 永久禁用 Gatekeeper（危险）
+            // 永久禁用 Gatekeeper（危险）仅执行命令 + 返回状态，不弹窗
             let command = "/usr/sbin/spctl --master-disable"
             let result: AuthResult = AuthorizationBridge.run(command: command)
 
-            // 结果不做状态二次判定（禁用后系统状态显示“允许任何来源”）
-            let success = (result == .success)
+            // ✅ 判断是否真的已关闭
+            let disabledNow = !gatekeeperIsEnabled()
+            let success = (result == .success) && disabledNow
+
             RepairHistoryManager.shared.addRecord(
                 appName: "System",
                 method: "spctl_disable",
                 success: success
             )
 
-            if success {
-                showAlert(title: "已禁用 Gatekeeper", message: "系统已启用“任何来源”。")
-            } else {
-                showAlert(title: "禁用失败", message: "命令已复制，可在终端手动执行：\n\(command)")
-                copyToPasteboard(command)
-            }
+            // 弹窗交由 FixAppModalView.swift 内部处理，不在此处提示
         }
     }
 
