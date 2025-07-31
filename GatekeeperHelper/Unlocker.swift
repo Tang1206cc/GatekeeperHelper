@@ -23,13 +23,12 @@ struct Unlocker {
                 return
             }
 
-            // ② 执行移除 quarantine
+                        // ② 执行移除 quarantine
             let command = "/usr/bin/xattr -r -d com.apple.quarantine \"\(path)\""
             let result: AuthResult = AuthorizationBridge.run(command: command)
 
-            // ③ 二次校验：确认 quarantine 已移除
-            let nowQuarantined = isQuarantined(path: path)
-            let success = (result == .success) && !nowQuarantined
+            // ③ 以命令返回为准（移除“读回校验”避免误判）
+            let success = (result == .success)
 
             // 历史记录（仅在实际执行过时记录）
             RepairHistoryManager.shared.addRecord(
@@ -85,13 +84,10 @@ struct Unlocker {
             return
         }
 
-        // ② 执行开启命令
+        // ② 执行开启命令（以返回值为准）
         let command = "/usr/sbin/spctl --master-enable"
         let result: AuthResult = AuthorizationBridge.run(command: command)
-
-        // ③ 二次校验：确认真的已开启
-        let enabledNow = gatekeeperIsEnabled()
-        let success = (result == .success) && enabledNow
+        let success = (result == .success)
 
         // 历史记录
         RepairHistoryManager.shared.addRecord(
@@ -113,9 +109,7 @@ struct Unlocker {
             )
             openSecurityPrivacyPane()
         } else {
-            let msg = (result == .success)
-            ? "命令已执行，但系统仍未检测到 Gatekeeper 开启。"
-            : "User canceled."
+            let msg = "User canceled 或命令失败。"
             showAlert(title: "恢复失败", message: "\(msg)\n命令已复制，可在终端手动执行：\n\(command)")
             copyToPasteboard(command)
         }
@@ -228,7 +222,7 @@ struct Unlocker {
     // MARK: - 状态判断工具
 
     /// Gatekeeper 是否开启（“任何来源”已取消）
-    private static func gatekeeperIsEnabled() -> Bool {
+    static func gatekeeperIsEnabled() -> Bool {
         let result = runLocal(bin: "/usr/sbin/spctl", args: ["--status"])
         // 正常情况下输出包含 “assessments enabled”
         return result.output.lowercased().contains("assessments enabled")

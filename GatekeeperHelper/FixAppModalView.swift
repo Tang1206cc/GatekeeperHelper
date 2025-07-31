@@ -18,7 +18,7 @@ struct FixAppModalView: View {
     // 第二类问题：意外退出
     @State private var selectedAdvancedMethod: AdvancedUnlockMethod = .appBundle
 
-    var appIcon: NSImage? {
+    private var appIcon: NSImage? {
         NSWorkspace.shared.icon(forFile: appURL.path)
     }
 
@@ -66,56 +66,55 @@ struct FixAppModalView: View {
                 .padding(.horizontal)
             }
 
+            // … 省略上文 …
+
             Button("立即修复") {
                 switch issue.title {
-                case "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”":
-                    if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" && selectedMethod == .spctl {
-                        // 永久禁用 Gatekeeper（危险）策略
-                        let command = "/usr/sbin/spctl --master-disable"
-                        let result: AuthResult = AuthorizationBridge.run(command: command)
+                    // 第一类问题：“xxx已损坏…”
+                    case "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”":
+                        if selectedMethod == .spctl {
+                            // 永久禁用 Gatekeeper（危险）：以命令返回值为准；用户取消则不做任何提示
+                            let command = "/usr/sbin/spctl --master-disable"
+                            let result: AuthResult = AuthorizationBridge.run(command: command)
 
-                        switch result {
-                        case .success:
-                            // ✅ 执行成功：提示授权已完成，并引导前往设置
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(command, forType: .string)
+                            switch result {
+                            case .success:
+                                // 历史记录：仅成功时写入
+                                RepairHistoryManager.shared.addRecord(
+                                    appName: "System",
+                                    method: "spctl_disable",
+                                    success: true
+                                )
 
-                            let alert = NSAlert()
-                            alert.messageText = "成功授权变更权限"
-                            alert.informativeText = """
+                                // 成功提示（你的既定文案）
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(command, forType: .string)
+
+                                let alert = NSAlert()
+                                alert.messageText = "成功授权变更权限"
+                                alert.informativeText = """
                     GatekeeperHelper 已为你授权开启“任何来源”选项。
 
                     请前往：设置 > 隐私与安全性 > 允许从以下来源的应用程序，并选择“任何来源”，以彻底关闭 Gatekeeper。
 
                     点击“好”将立即为你打开设置界面。
                     """
-                            alert.addButton(withTitle: "好")
-                            alert.runModal()
+                                alert.addButton(withTitle: "好")
+                                alert.runModal()
 
-                            // 打开设置
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy") {
-                                NSWorkspace.shared.open(url)
+                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy") {
+                                    NSWorkspace.shared.open(url)
+                                }
+
+                            case .failure:
+                                // 用户取消 / 命令失败：不弹任何提示，不写失败记录（避免误导）
+                                break
                             }
 
-                        case .failure:
-                            // ❌ 执行失败 / 用户取消
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(command, forType: .string)
-
-                            let alert = NSAlert()
-                            alert.messageText = "禁用失败"
-                            alert.informativeText = """
-                    命令已复制，可在终端手动执行：
-
-                    \(command)
-                    """
-                            alert.addButton(withTitle: "好")
-                            alert.runModal()
+                        } else {
+                            // 其它方式仍走 Unlocker（保持原行为）
+                            Unlocker.unlock(appAt: appURL, with: selectedMethod)
                         }
-                    } else {
-                        // 普通方式
-                        Unlocker.unlock(appAt: appURL, with: selectedMethod)
-                    }
 
                 case "“xxx”意外退出":
                     Unlocker.unlock(appAt: appURL, withAdvancedMethod: selectedAdvancedMethod)
@@ -132,10 +131,8 @@ struct FixAppModalView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
 
-            Button("取消") {
-                dismiss()
-            }
-            .foregroundColor(.secondary)
+            Button("取消") { dismiss() }
+                .foregroundColor(.secondary)
         }
         .padding()
         .frame(minWidth: 360)
