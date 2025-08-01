@@ -1,23 +1,17 @@
-//
-//  GatekeeperHelperApp.swift
-//  GatekeeperHelper
-//
-//  Created by 唐梓耀 on 2025/7/24.
-//
-
 import SwiftUI
 
 @main
 struct GatekeeperHelperApp: App {
-    // ✅ 连接 AppDelegate 实例
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .frame(minWidth: 920, minHeight: 580) // ✅ 正确：作用于 ContentView，而不是 WindowGroup
         }
+        .defaultSize(width: 1020, height: 660) // ✅ 默认打开窗口尺寸
+        .windowStyle(DefaultWindowStyle())
 
-        // ✅ 系统管理的原生偏好设置窗口
         Settings {
             SettingsView()
         }

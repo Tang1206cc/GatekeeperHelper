@@ -127,8 +127,14 @@ struct ContentView: View {
                                     .bold()
                                     .layoutPriority(1)
 
-                                Text(issue.description)
-                                    .font(.body)
+                                // ⚠️ 修改开始：让所有问题类型的详情文字都采用 ScrollView 包裹、fixedSize 显示
+                                ScrollView {
+                                    Text(issue.description)
+                                        .font(.body)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                .frame(minHeight: 50, maxHeight: 120)
+                                // ⚠️ 修改结束
 
                                 Rectangle()
                                     .fill(Color.gray.opacity(0.15))
@@ -137,7 +143,6 @@ struct ContentView: View {
                                         Text("【图片占位：\(issue.imageName)】")
                                             .foregroundColor(.gray)
                                     )
-
                                 Divider()
 
                                 // ✅ 仅在第一项（“xxx已损坏…”）下显示“恢复 Gatekeeper”提示与按钮
