@@ -6,9 +6,9 @@ struct UPXFixModalView: View {
     let appURL: URL
     @Environment(\.dismiss) private var dismiss
 
-    @State private var fixing = false
     @State private var showBrewGuide = false
     @State private var showUPXGuide = false
+    @State private var showFixGuide = false
 
     var appIcon: NSImage? {
         NSWorkspace.shared.icon(forFile: appURL.path)
@@ -39,13 +39,12 @@ struct UPXFixModalView: View {
             Button("第二步：安装UPX工具") { installUPX() }
 
             HStack {
-                Button("立即修复") { runFix() }
+                Button("前往修复") { showFixGuide = true }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                if fixing { ProgressView().scaleEffect(0.8) }
             }
 
-            Text("确保上面两步执行返回成功后再点击此修复按钮，否则无法真正脱壳解锁")
+            Text("确保上面两步执行返回成功后再点击“前往修复”按钮，否则无法真正脱壳解锁")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -69,6 +68,15 @@ struct UPXFixModalView: View {
                 showUPXGuide = false
             }
         }
+        .sheet(isPresented: $showFixGuide) {
+            UPXManualFixGuideView {
+                showFixGuide = false
+                markFixResult(success: true)
+            } onCancel: {
+                showFixGuide = false
+                markFixResult(success: false)
+            }
+        }
     }
 
     private func installBrew() {
@@ -79,69 +87,14 @@ struct UPXFixModalView: View {
         showUPXGuide = true
     }
 
-    private func runFix() {
-        fixing = true
-        DispatchQueue.global().async {
-            let execDir = appURL.appendingPathComponent("Contents/MacOS")
-            do {
-                var executable: URL? = nil
-                let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
-                if let info = NSDictionary(contentsOf: infoPlistURL) as? [String: Any],
-                   let execName = info["CFBundleExecutable"] as? String {
-                    let candidate = execDir.appendingPathComponent(execName)
-                    if FileManager.default.fileExists(atPath: candidate.path) {
-                        executable = candidate
-                    }
-                }
-                if executable == nil {
-                    let contents = try FileManager.default.contentsOfDirectory(at: execDir, includingPropertiesForKeys: nil, options: [])
-                    executable = contents.first
-                }
-                guard let exe = executable else {
-                    DispatchQueue.main.async {
-                        fixing = false
-                        Unlocker.showAlert(title: "未找到可执行文件", message: "在 Contents/MacOS 中未发现可执行文件。")
-                    }
-                    return
-                }
-                let cmd = "upx -d \"\(exe.path)\""
-                let result = run(cmd)
-                let success = result.status == 0
-                DispatchQueue.main.async {
-                    fixing = false
-                    RepairHistoryManager.shared.addRecord(appName: appURL.lastPathComponent, method: "upx", success: success)
-                    if success {
-                        Unlocker.showAlert(title: "修复成功", message: "已执行脱壳操作。")
-                    } else {
-                        Unlocker.showAlert(title: "修复失败", message: result.output)
-                    }
-                    dismiss()
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    fixing = false
-                    Unlocker.showAlert(title: "出错了", message: "无法访问 Contents/MacOS：\(error.localizedDescription)")
-                }
-            }
+    private func markFixResult(success: Bool) {
+        RepairHistoryManager.shared.addRecord(appName: appURL.lastPathComponent, method: "upx", success: success)
+        if success {
+            Unlocker.showAlert(title: "修复成功", message: "已执行脱壳操作。")
+        } else {
+            Unlocker.showAlert(title: "修复失败", message: "用户取消。")
         }
-    }
-
-    private func run(_ command: String) -> (status: Int32, output: String) {
-        let process = Process()
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", command]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = pipe
-        do {
-            try process.run()
-        } catch {
-            return (status: -1, output: error.localizedDescription)
-        }
-        process.waitUntilExit()
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let out = String(data: data, encoding: .utf8) ?? ""
-        return (status: process.terminationStatus, output: out)
+        dismiss()
     }
 }
 
@@ -174,7 +127,7 @@ private struct BrewInstallGuideView: View {
             .padding(.top, 10)
         }
         .padding()
-        .frame(width: 420)
+        .frame(width: 560)
     }
 }
 
@@ -196,6 +149,37 @@ private struct UPXInstallGuideView: View {
             HStack {
                 Spacer()
                 Button("好，我已完成") { onClose() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding(.top, 10)
+        }
+        .padding()
+        .frame(width: 420)
+    }
+}
+
+private struct UPXManualFixGuideView: View {
+    let onComplete: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("修复提示：务必逐条阅读，按下方内容操作完毕再关闭本弹窗")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("1.完成最后的脱壳解锁操作，请打开终端输入以下代码，空格一个。")
+                CodeBlock(command: "upx -d")
+                Text("2.把软件拖到桌面上，右键显示包内容，进入Contents/MacOS中找到 Unix可执行文件。")
+                Text("3.把找到的Unix可执行文件拖进终端，并回车等待返回即可（一般和软件名相同的就是，不行就多试几个）。")
+            }
+            .font(.body)
+
+            HStack {
+                Spacer()
+                Button("取消") { onCancel() }
+                    .buttonStyle(.bordered)
+                Button("好，我已完成") { onComplete() }
                     .buttonStyle(.borderedProminent)
             }
             .padding(.top, 10)
