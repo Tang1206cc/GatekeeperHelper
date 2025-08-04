@@ -1,7 +1,6 @@
-//
+
 //  ContentView.swift
 //  GatekeeperHelper
-//
 
 import SwiftUI
 import AppKit
@@ -40,6 +39,11 @@ let knownIssues: [UnlockIssue] = [
         title: "“xxx软件打开失败”",
         description: "这种情况是因为当前 App 包内的 Unix 可执行文件显示为白色的文本文稿，需要赋予其可执行权限，变成黑色的 Unix 可执行文件后即可正常启动应用程序。",
         imageName: "issue3-placeholder"
+    ),
+    UnlockIssue(
+        title: "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。",
+        description: "由于在 Apple 中引入了对应用程序进行公证的强制性措施，macOS Catalina 及以上版本系统不允许您运行未经验证的应用程序，即使该应用程序已经添加开发者签名也是如此。这会导致应用程序无法运行。",
+        imageName: "issue4-placeholder"
     )
 ]
 
@@ -48,17 +52,16 @@ struct ContentView: View {
     @State private var selectedAppURL: URL? = nil
     @State private var selectedUnlockMethod: UnlockMethod = .xattr
 
-    // 弹窗控制
     @State private var showSIPSheet = false
     @State private var showDonateSheet = false
     @State private var showFeedbackSheet = false
     @State private var showSettingsSheet = false
     @State private var showHistorySheet = false
+    @State private var showMalwareFixSheet = false
 
     var body: some View {
         GeometryReader { _ in
             VStack(spacing: 0) {
-                // 顶部栏：标题 + 功能按钮
                 HStack(alignment: .center) {
                     Text("请选择您遇到的 App 启动问题")
                         .font(.title2)
@@ -95,9 +98,7 @@ struct ContentView: View {
 
                 Divider()
 
-                // 主内容区域
                 HStack(spacing: 0) {
-                    // 左侧问题导航栏
                     List(selection: $selectedIssue) {
                         ForEach(knownIssues) { issue in
                             Text(issue.title)
@@ -118,71 +119,121 @@ struct ContentView: View {
 
                     Divider()
 
-                    // 右侧详情区域
                     VStack(alignment: .leading, spacing: 16) {
                         if let issue = selectedIssue {
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text(issue.title)
-                                    .font(.title2)
-                                    .bold()
-                                    .layoutPriority(1)
-
-                                // ⚠️ 修改开始：让所有问题类型的详情文字都采用 ScrollView 包裹、fixedSize 显示
-                                ScrollView {
-                                    Text(issue.description)
-                                        .font(.body)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                                .frame(minHeight: 50, maxHeight: 120)
-                                // ⚠️ 修改结束
-
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.15))
-                                    .frame(height: 150)
-                                    .overlay(
-                                        Text("【图片占位：\(issue.imageName)】")
-                                            .foregroundColor(.gray)
-                                    )
-                                Divider()
-
-                                // ✅ 仅在第一项（“xxx已损坏…”）下显示“恢复 Gatekeeper”提示与按钮
-                                if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "shield.lefthalf.filled")
-                                            .imageScale(.medium)
-                                            .foregroundColor(.blue)
-                                        Text("如果你之前使用过“永久禁用”选项，可一键恢复 Gatekeeper：")
-                                            .font(.callout)
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                        Button("恢复 Gatekeeper") {
-                                            Unlocker.restoreGatekeeper()
-                                        }
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .padding(.vertical, 4)
-                                        .padding(.horizontal, 10)
-                                        .background(Color.blue.opacity(0.1))
-                                        .cornerRadius(6)
+                            if issue.title == "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。" {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(issue.title)
+                                        .font(.title2)
+                                        .bold()
+                                    ScrollView {
+                                        Text(issue.description)
+                                            .font(.body)
+                                            .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .padding(.vertical, 2)
-                                }
+                                    .frame(minHeight: 50, maxHeight: 120)
 
-                                // 拖入 / 选择 App 的区域（所有问题共用）
-                                DropAreaView { url in
-                                    selectedAppURL = url
-                                    print("用户拖入或选择的 App 路径：\(url.path)")
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(height: 150)
+                                        .overlay(
+                                            Text("【图片占位：\(issue.imageName)】")
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    Divider()
+
+                                    HStack {
+                                        Spacer()
+                                        HStack {
+    Spacer()
+    VStack {
+        Spacer()
+        Button(action: {
+            showMalwareFixSheet = true
+        }) {
+            Text("查看解决方案")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(minWidth: 180)
+        }
+        .padding()
+        .background(Color.accentColor.opacity(0.12))
+        .cornerRadius(10)
+        Spacer()
+    }
+    Spacer()
+}
+                                        .padding()
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .cornerRadius(8)
+                                        Spacer()
+                                    }
                                 }
-                                .frame(height: 180)
-                                .padding(.top, 10)
-                                .sheet(item: $selectedAppURL) { url in
-                                    FixAppModalView(
-                                        appURL: url,
-                                        issue: selectedIssue ?? knownIssues[0],
-                                        selectedMethod: $selectedUnlockMethod
-                                    )
+                                .padding(.top, 6)
+                                .sheet(isPresented: $showMalwareFixSheet) {
+                                    MalwareCheckFixView {
+                                        showMalwareFixSheet = false
+                                    }
+                                }
+                            } else {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text(issue.title)
+                                        .font(.title2)
+                                        .bold()
+                                        .layoutPriority(1)
+
+                                    ScrollView {
+                                        Text(issue.description)
+                                            .font(.body)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(minHeight: 50, maxHeight: 120)
+
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(height: 150)
+                                        .overlay(
+                                            Text("【图片占位：\(issue.imageName)】")
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    Divider()
+
+                                    if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "shield.lefthalf.filled")
+                                                .imageScale(.medium)
+                                                .foregroundColor(.blue)
+                                            Text("如果你之前使用过“永久禁用”选项，可一键恢复 Gatekeeper：")
+                                                .font(.callout)
+                                                .foregroundColor(.secondary)
+                                            Spacer()
+                                            Button("恢复 Gatekeeper") {
+                                                Unlocker.restoreGatekeeper()
+                                            }
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .padding(.vertical, 4)
+                                            .padding(.horizontal, 10)
+                                            .background(Color.blue.opacity(0.1))
+                                            .cornerRadius(6)
+                                        }
+                                        .padding(.vertical, 2)
+                                    }
+
+                                    DropAreaView { url in
+                                        selectedAppURL = url
+                                    }
+                                    .frame(height: 180)
+                                    .padding(.top, 10)
+                                    .sheet(item: $selectedAppURL) { url in
+                                        FixAppModalView(
+                                            appURL: url,
+                                            issue: selectedIssue ?? knownIssues[0],
+                                            selectedMethod: $selectedUnlockMethod
+                                        )
+                                    }
                                 }
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
                         } else {
                             Text("请选择左侧的问题类型")
                                 .foregroundColor(.gray)
@@ -190,7 +241,6 @@ struct ContentView: View {
 
                         Spacer()
 
-                        // ✅ 底部关闭 SIP 提示区域
                         HStack {
                             Spacer()
                             Text("如果这些都没用，请点击：")
@@ -212,7 +262,6 @@ struct ContentView: View {
             }
             .frame(minWidth: 960, minHeight: 640)
         }
-        // 弹窗内容
         .sheet(isPresented: $showSIPSheet) {
             SheetWrapperView(title: "关闭 SIP") {
                 showSIPSheet = false
