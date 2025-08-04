@@ -255,11 +255,11 @@ struct Unlocker {
 
     // MARK: - 公共小工具
 
-    static func showAlert(title: String, message: String) {
+    static func showAlert(title: String, message: String, buttonText: String = "好") {
         let alert = NSAlert()
         alert.messageText = title
         alert.informativeText = message
-        alert.addButton(withTitle: "好")
+        alert.addButton(withTitle: buttonText)
         alert.runModal()
     }
 

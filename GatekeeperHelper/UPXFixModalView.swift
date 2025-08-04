@@ -10,6 +10,7 @@ struct UPXFixModalView: View {
     @State private var upxInstalling = false
     @State private var diagnoseResult: String = ""
     @State private var fixing = false
+    @State private var showBrewGuide = false
 
     var appIcon: NSImage? {
         NSWorkspace.shared.icon(forFile: appURL.path)
@@ -46,6 +47,9 @@ struct UPXFixModalView: View {
             }
 
             Button("一键诊断是否已具备修复条件") { diagnose() }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+
             if !diagnoseResult.isEmpty {
                 Text(diagnoseResult)
                     .font(.footnote)
@@ -69,12 +73,20 @@ struct UPXFixModalView: View {
         }
         .padding()
         .frame(minWidth: 360)
+        .sheet(isPresented: $showBrewGuide) {
+            BrewInstallGuideView {
+                showBrewGuide = false
+            } onOpenSettings: {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preferences.softwareupdate") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
     }
 
     private func installBrew() {
         brewInstalling = true
         DispatchQueue.global().async {
-            // 检查是否缺少命令行工具
             let clt = run("/usr/bin/xcode-select -p")
             if clt.status != 0 {
                 DispatchQueue.main.async {
@@ -88,7 +100,10 @@ struct UPXFixModalView: View {
             }
 
             _ = run("/bin/bash -c \"$(curl -fsSL https://gitee.com/ineo6/homebrew-install/raw/master/install.sh)\"")
-            DispatchQueue.main.async { brewInstalling = false }
+            DispatchQueue.main.async {
+                brewInstalling = false
+                showBrewGuide = true
+            }
         }
     }
 
@@ -96,7 +111,10 @@ struct UPXFixModalView: View {
         upxInstalling = true
         DispatchQueue.global().async {
             _ = run("/bin/bash -c \"brew install upx\"")
-            DispatchQueue.main.async { upxInstalling = false }
+            DispatchQueue.main.async {
+                upxInstalling = false
+                Unlocker.showAlert(title: "提示", message: "耐心等待下载完毕即可，注意终端返回，可多次尝试", buttonText: "点击以继续")
+            }
         }
     }
 
@@ -164,5 +182,36 @@ struct UPXFixModalView: View {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let out = String(data: data, encoding: .utf8) ?? ""
         return (status: process.terminationStatus, output: out)
+    }
+}
+
+private struct BrewInstallGuideView: View {
+    let onClose: () -> Void
+    let onOpenSettings: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("安装提示：务必仔细阅读下方内容")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("1.若终端提示“Checking for `sudo` access (which may request your password)...” 在下方 Password 处输入电脑密码后回车即可（输入过程不可见），完成后跟随提示开始下载即可。")
+                Text("2.若终端提示“curl: (6) Could not resolve host: gitee.com”说明当前无法访问下载地址，请稍候再试。")
+                Text("3.若终端提示缺乏命令行工具等相关英文内容，说明 Mac 当前没有相关配置。稍等片刻后，设置-通用-软件更新内就会自动推送相关配置更新，下载安装更新后（不关机更新）即可重试操作。")
+                Text("4.完成上述后，若提示“执行成功”则代表安装成功")
+            }
+            .font(.body)
+
+            HStack {
+                Button("为你打开“设置”更新界面") { onOpenSettings() }
+                    .buttonStyle(.bordered)
+                Spacer()
+                Button("好，继续") { onClose() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding(.top, 10)
+        }
+        .padding()
+        .frame(width: 420)
     }
 }
