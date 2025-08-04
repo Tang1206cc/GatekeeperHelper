@@ -90,7 +90,7 @@ struct UPXFixModalView: View {
     private func markFixResult(success: Bool) {
         RepairHistoryManager.shared.addRecord(appName: appURL.lastPathComponent, method: "upx", success: success)
         if success {
-            Unlocker.showAlert(title: "修复成功", message: "已执行脱壳操作。")
+            Unlocker.showAlert(title: "完成", message: "您已完成全部脱壳操作，若无效可多次重试或反馈作者！")
         } else {
             Unlocker.showAlert(title: "修复失败", message: "用户取消。")
         }
@@ -110,7 +110,7 @@ private struct BrewInstallGuideView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("1. 请拷贝下列命令至“终端”执行：")
                 CodeBlock(command: "/bin/bash -c \"$(curl -fsSL https://gitee.com/ineo6/homebrew-install/raw/master/install.sh)\"")
-                Text("2.若终端提示“Checking for sudo access (which may request your password).”，在下方Password处输入电脑密码后回车即可（输入过程不可见），完成后跟随提示开始下载即可。")
+                Text("2.若终端提示“Checking for sudo access (which may request your password).”，在下方Password处输入电脑密码后回车（输入过程不可见），完成后跟随提示开始下载。")
                 Text("3.若终端提示“curl: (6) Could not resolve host: gitee.com”说明当前无法访问下载地址，请稍候再试。")
                 Text("4.若终端提示缺乏命令行工具等相关英文内容，说明Mac当前没有相关配置。稍等片刻后，“设置-通用-软件更新”内就会自动推送相关配置更新，下载安装更新后（不关机更新）即可重试操作。")
                 Text("完成上述后，若提示“执行成功”则代表安装成功")
@@ -127,7 +127,7 @@ private struct BrewInstallGuideView: View {
             .padding(.top, 10)
         }
         .padding()
-        .frame(width: 560)
+        .frame(width: 960)
     }
 }
 
@@ -170,8 +170,8 @@ private struct UPXManualFixGuideView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("1.完成最后的脱壳解锁操作，请打开终端输入以下代码，空格一个。")
                 CodeBlock(command: "upx -d")
-                Text("2.把软件拖到桌面上，右键显示包内容，进入Contents/MacOS中找到 Unix可执行文件。")
-                Text("3.把找到的Unix可执行文件拖进终端，并回车等待返回即可（一般和软件名相同的就是，不行就多试几个）。")
+                Text("2.把软件拖到桌面上，右键显示包内容，进入Contents/MacOS中找到 Unix可执行文件（一般和软件名相同的就是，不行就多试几个）。")
+                Text("3.把找到的Unix可执行文件拖进终端，并回车等待返回即可。")
             }
             .font(.body)
 
@@ -185,6 +185,6 @@ private struct UPXManualFixGuideView: View {
             .padding(.top, 10)
         }
         .padding()
-        .frame(width: 420)
+        .frame(width: 520)
     }
 }
