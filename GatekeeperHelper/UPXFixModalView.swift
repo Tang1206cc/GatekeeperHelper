@@ -6,6 +6,8 @@ struct UPXFixModalView: View {
     let appURL: URL
     @Environment(\.dismiss) private var dismiss
 
+    @State private var brewInstalling = false
+    @State private var upxInstalling = false
     @State private var diagnoseResult: String = ""
     @State private var fixing = false
     @State private var showBrewGuide = false
@@ -34,13 +36,20 @@ struct UPXFixModalView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
 
-            Button("第一步：安装Brew工具") { installBrew() }
+            HStack {
+                Button("第一步：安装Brew工具") { installBrew() }
+                if brewInstalling { ProgressView().scaleEffect(0.8) }
+            }
 
-            Button("第二步：安装UPX工具") { installUPX() }
+            HStack {
+                Button("第二步：安装UPX工具") { installUPX() }
+                if upxInstalling { ProgressView().scaleEffect(0.8) }
+            }
 
             Button("一键诊断是否已具备修复条件") { diagnose() }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)
+
             if !diagnoseResult.isEmpty {
                 Text(diagnoseResult)
                     .font(.footnote)
@@ -65,7 +74,9 @@ struct UPXFixModalView: View {
         .padding()
         .frame(minWidth: 360)
         .sheet(isPresented: $showBrewGuide) {
-            BrewInstallGuideView { showBrewGuide = false } onOpenSettings: {
+            BrewInstallGuideView {
+                showBrewGuide = false
+            } onOpenSettings: {
                 if let url = URL(string: "x-apple.systempreferences:com.apple.preferences.softwareupdate") {
                     NSWorkspace.shared.open(url)
                 }
@@ -74,36 +85,43 @@ struct UPXFixModalView: View {
     }
 
     private func installBrew() {
-        let command = "/bin/bash -c \"$(curl -fsSL https://gitee.com/ineo6/homebrew-install/raw/master/install.sh)\""
-        let script = """
-        tell application \"Terminal\"
-            activate
-            do script \"\(command)\"
-        end tell
-        """
-        if let appleScript = NSAppleScript(source: script) {
-            appleScript.executeAndReturnError(nil)
+        brewInstalling = true
+        DispatchQueue.global().async {
+            let clt = run("/usr/bin/xcode-select -p")
+            if clt.status != 0 {
+                DispatchQueue.main.async {
+                    brewInstalling = false
+                    Unlocker.showAlert(title: "缺少执行工具", message: "已在系统层面为你推送命令行工具，进入设置完成更新后方可重新操作")
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preferences.softwareupdate") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                return
+            }
+
+            _ = run("/bin/bash -c \"$(curl -fsSL https://gitee.com/ineo6/homebrew-install/raw/master/install.sh)\"")
+            DispatchQueue.main.async {
+                brewInstalling = false
+                showBrewGuide = true
+            }
         }
-        showBrewGuide = true
     }
 
     private func installUPX() {
-        let script = """
-        tell application \"Terminal\"
-            activate
-            do script \"brew install upx\"
-        end tell
-        """
-        if let appleScript = NSAppleScript(source: script) {
-            appleScript.executeAndReturnError(nil)
+        upxInstalling = true
+        DispatchQueue.global().async {
+            _ = run("/bin/bash -c \"brew install upx\"")
+            DispatchQueue.main.async {
+                upxInstalling = false
+                Unlocker.showAlert(title: "提示", message: "耐心等待下载完毕即可，注意终端返回，可多次尝试", buttonText: "点击以继续")
+            }
         }
-        Unlocker.showAlert(title: "提示", message: "耐心等待下载完毕即可，注意终端返回，可多次尝试", buttonText: "点击以继续")
     }
 
     private func diagnose() {
         DispatchQueue.global().async {
-            let brew = run("command -v brew")
-            let upx = run("command -v upx")
+            let brew = run("/usr/bin/which brew")
+            let upx = run("/usr/bin/which upx")
             var result: [String] = []
             result.append(brew.status == 0 ? "Brew 已安装" : "Brew 未安装")
             result.append(upx.status == 0 ? "UPX 已安装" : "UPX 未安装")
