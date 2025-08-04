@@ -44,6 +44,11 @@ let knownIssues: [UnlockIssue] = [
         title: "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。",
         description: "由于在 Apple 中引入了对应用程序进行公证的强制性措施，macOS Catalina 及以上版本系统不允许您运行未经验证的应用程序，即使该应用程序已经添加开发者签名也是如此。这会导致应用程序无法运行。",
         imageName: "issue4-placeholder"
+    ),
+    UnlockIssue(
+        title: "应用程序“xxx”无法打开。",
+        description: "macOS 的安全机制针对某些第三方 App 是“带壳”的，此时这些软件将提示“应用程序\"xxx\"无法打开”。通过引入第三方工具进行脱壳操作即可正常打开。",
+        imageName: "issue5-placeholder",
     )
 ]
 
@@ -226,11 +231,15 @@ struct ContentView: View {
                                     .frame(height: 180)
                                     .padding(.top, 10)
                                     .sheet(item: $selectedAppURL) { url in
-                                        FixAppModalView(
-                                            appURL: url,
-                                            issue: selectedIssue ?? knownIssues[0],
-                                            selectedMethod: $selectedUnlockMethod
-                                        )
+                                        if selectedIssue?.title == "应用程序“xxx”无法打开。" {
+                                            UPXFixModalView(appURL: url)
+                                        } else {
+                                            FixAppModalView(
+                                                appURL: url,
+                                                issue: selectedIssue ?? knownIssues[0],
+                                                selectedMethod: $selectedUnlockMethod
+                                            )
+                                        }
                                     }
                                 }
                             }
