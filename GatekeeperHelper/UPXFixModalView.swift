@@ -6,11 +6,9 @@ struct UPXFixModalView: View {
     let appURL: URL
     @Environment(\.dismiss) private var dismiss
 
-    @State private var brewInstalling = false
-    @State private var upxInstalling = false
-    @State private var diagnoseResult: String = ""
     @State private var fixing = false
     @State private var showBrewGuide = false
+    @State private var showUPXGuide = false
 
     var appIcon: NSImage? {
         NSWorkspace.shared.icon(forFile: appURL.path)
@@ -36,25 +34,9 @@ struct UPXFixModalView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
 
-            HStack {
-                Button("第一步：安装Brew工具") { installBrew() }
-                if brewInstalling { ProgressView().scaleEffect(0.8) }
-            }
+            Button("第一步：安装Brew工具") { installBrew() }
 
-            HStack {
-                Button("第二步：安装UPX工具") { installUPX() }
-                if upxInstalling { ProgressView().scaleEffect(0.8) }
-            }
-
-            Button("一键诊断是否已具备修复条件") { diagnose() }
-                .buttonStyle(.borderedProminent)
-                .tint(.orange)
-
-            if !diagnoseResult.isEmpty {
-                Text(diagnoseResult)
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-            }
+            Button("第二步：安装UPX工具") { installUPX() }
 
             HStack {
                 Button("立即修复") { runFix() }
@@ -82,53 +64,19 @@ struct UPXFixModalView: View {
                 }
             }
         }
+        .sheet(isPresented: $showUPXGuide) {
+            UPXInstallGuideView {
+                showUPXGuide = false
+            }
+        }
     }
 
     private func installBrew() {
-        brewInstalling = true
-        DispatchQueue.global().async {
-            let clt = run("/usr/bin/xcode-select -p")
-            if clt.status != 0 {
-                DispatchQueue.main.async {
-                    brewInstalling = false
-                    Unlocker.showAlert(title: "缺少执行工具", message: "已在系统层面为你推送命令行工具，进入设置完成更新后方可重新操作")
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preferences.softwareupdate") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-                return
-            }
-
-            _ = run("/bin/bash -c \"$(curl -fsSL https://gitee.com/ineo6/homebrew-install/raw/master/install.sh)\"")
-            DispatchQueue.main.async {
-                brewInstalling = false
-                showBrewGuide = true
-            }
-        }
+        showBrewGuide = true
     }
 
     private func installUPX() {
-        upxInstalling = true
-        DispatchQueue.global().async {
-            _ = run("/bin/bash -c \"brew install upx\"")
-            DispatchQueue.main.async {
-                upxInstalling = false
-                Unlocker.showAlert(title: "提示", message: "耐心等待下载完毕即可，注意终端返回，可多次尝试", buttonText: "点击以继续")
-            }
-        }
-    }
-
-    private func diagnose() {
-        DispatchQueue.global().async {
-            let brew = run("/usr/bin/which brew")
-            let upx = run("/usr/bin/which upx")
-            var result: [String] = []
-            result.append(brew.status == 0 ? "Brew 已安装" : "Brew 未安装")
-            result.append(upx.status == 0 ? "UPX 已安装" : "UPX 未安装")
-            DispatchQueue.main.async {
-                diagnoseResult = result.joined(separator: "；")
-            }
-        }
+        showUPXGuide = true
     }
 
     private func runFix() {
@@ -136,15 +84,27 @@ struct UPXFixModalView: View {
         DispatchQueue.global().async {
             let execDir = appURL.appendingPathComponent("Contents/MacOS")
             do {
-                let contents = try FileManager.default.contentsOfDirectory(at: execDir, includingPropertiesForKeys: nil, options: [])
-                guard let executable = contents.first else {
+                var executable: URL? = nil
+                let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
+                if let info = NSDictionary(contentsOf: infoPlistURL) as? [String: Any],
+                   let execName = info["CFBundleExecutable"] as? String {
+                    let candidate = execDir.appendingPathComponent(execName)
+                    if FileManager.default.fileExists(atPath: candidate.path) {
+                        executable = candidate
+                    }
+                }
+                if executable == nil {
+                    let contents = try FileManager.default.contentsOfDirectory(at: execDir, includingPropertiesForKeys: nil, options: [])
+                    executable = contents.first
+                }
+                guard let exe = executable else {
                     DispatchQueue.main.async {
                         fixing = false
                         Unlocker.showAlert(title: "未找到可执行文件", message: "在 Contents/MacOS 中未发现可执行文件。")
                     }
                     return
                 }
-                let cmd = "upx -d \"\(executable.path)\""
+                let cmd = "upx -d \"\(exe.path)\""
                 let result = run(cmd)
                 let success = result.status == 0
                 DispatchQueue.main.async {
@@ -191,14 +151,16 @@ private struct BrewInstallGuideView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("安装提示：务必仔细阅读下方内容")
+            Text("安装提示：务必逐条阅读，按下方内容操作完毕再关闭本弹窗")
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("1.若终端提示“Checking for `sudo` access (which may request your password)...” 在下方 Password 处输入电脑密码后回车即可（输入过程不可见），完成后跟随提示开始下载即可。")
-                Text("2.若终端提示“curl: (6) Could not resolve host: gitee.com”说明当前无法访问下载地址，请稍候再试。")
-                Text("3.若终端提示缺乏命令行工具等相关英文内容，说明 Mac 当前没有相关配置。稍等片刻后，设置-通用-软件更新内就会自动推送相关配置更新，下载安装更新后（不关机更新）即可重试操作。")
-                Text("4.完成上述后，若提示“执行成功”则代表安装成功")
+                Text("1. 请拷贝下列命令至“终端”执行：")
+                CodeBlock(command: "/bin/bash -c \"$(curl -fsSL https://gitee.com/ineo6/homebrew-install/raw/master/install.sh)\"")
+                Text("2.若终端提示“Checking for sudo access (which may request your password).”，在下方Password处输入电脑密码后回车即可（输入过程不可见），完成后跟随提示开始下载即可。")
+                Text("3.若终端提示“curl: (6) Could not resolve host: gitee.com”说明当前无法访问下载地址，请稍候再试。")
+                Text("4.若终端提示缺乏命令行工具等相关英文内容，说明Mac当前没有相关配置。稍等片刻后，“设置-通用-软件更新”内就会自动推送相关配置更新，下载安装更新后（不关机更新）即可重试操作。")
+                Text("完成上述后，若提示“执行成功”则代表安装成功")
             }
             .font(.body)
 
@@ -206,7 +168,34 @@ private struct BrewInstallGuideView: View {
                 Button("为你打开“设置”更新界面") { onOpenSettings() }
                     .buttonStyle(.bordered)
                 Spacer()
-                Button("好，继续") { onClose() }
+                Button("好，我已完成") { onClose() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding(.top, 10)
+        }
+        .padding()
+        .frame(width: 420)
+    }
+}
+
+private struct UPXInstallGuideView: View {
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("安装提示：务必逐条阅读，按下方内容操作完毕再关闭本弹窗")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("1. 请拷贝下列命令至“终端”执行：")
+                CodeBlock(command: "brew install upx")
+                Text("2.耐心等待下载完毕即可，注意终端返回内容，可多次尝试。")
+            }
+            .font(.body)
+
+            HStack {
+                Spacer()
+                Button("好，我已完成") { onClose() }
                     .buttonStyle(.borderedProminent)
             }
             .padding(.top, 10)
