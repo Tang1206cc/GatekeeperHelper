@@ -54,6 +54,11 @@ let knownIssues: [UnlockIssue] = [
         title: "无法打开“xxx”，因为它不是从App Store下载。",
         description: "如果 Mac 是全新的或从未更改过软件安装安全性设置，其默认设置是仅允许安装来自「App Store 」的软件。而你正在安装的软件是从浏览器或其他第三方下载的时，就会看到这一警告信息。",
         imageName: "issue6-placeholder",
+    ),
+    UnlockIssue(
+        title: "无法打开“xxx”，因为无法验证开发者。",
+        description: "即便你的Mac已经允许安装App Store和已知开发者的应用，但当你尝试安装的某些App时，可能也还会看到此类警告。",
+        imageName: "issue7-placeholder",
     )
 ]
 
@@ -69,6 +74,7 @@ struct ContentView: View {
     @State private var showHistorySheet = false
     @State private var showMalwareFixSheet = false
     @State private var showAppStoreFixSheet = false
+    @State private var showUnverifiedDeveloperFixSheet = false
 
     var body: some View {
         GeometryReader { _ in
@@ -238,6 +244,60 @@ struct ContentView: View {
                                 .sheet(isPresented: $showAppStoreFixSheet) {
                                     AppStoreFixView {
                                         showAppStoreFixSheet = false
+                                    }
+                                }
+                            } else if issue.title == "无法打开“xxx”，因为无法验证开发者。" {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(issue.title)
+                                        .font(.title2)
+                                        .bold()
+                                    ScrollView {
+                                        Text(issue.description)
+                                            .font(.body)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(minHeight: 50, maxHeight: 120)
+
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(height: 150)
+                                        .overlay(
+                                            Text("【图片占位：\\(issue.imageName)】")
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    Divider()
+
+                                    HStack {
+                                        Spacer()
+                                        HStack {
+    Spacer()
+    VStack {
+        Spacer()
+        Button(action: {
+            showUnverifiedDeveloperFixSheet = true
+        }) {
+            Text("查看解决方案")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(minWidth: 180)
+        }
+        .padding()
+        .background(Color.accentColor.opacity(0.12))
+        .cornerRadius(10)
+        Spacer()
+    }
+    Spacer()
+}
+                                        .padding()
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .cornerRadius(8)
+                                        Spacer()
+                                    }
+                                }
+                                .padding(.top, 6)
+                                .sheet(isPresented: $showUnverifiedDeveloperFixSheet) {
+                                    UnverifiedDeveloperFixView {
+                                        showUnverifiedDeveloperFixSheet = false
                                     }
                                 }
                             } else {
