@@ -64,6 +64,11 @@ let knownIssues: [UnlockIssue] = [
         title: "Apple无法验证“xxx”是否包含可能危害Mac安全或泄漏隐私的恶意软件",
         description: "此问题是“无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件”的另一种表述。macOS Catalina 及更高版本要求 App 必须通过 Apple 的公证（Notarization）验证，未通过验证会提示类似此警告，解决方法与前者相同。",
         imageName: "issue8-placeholder",
+    ),
+    UnlockIssue(
+        title: "未能打开磁盘映像。磁盘映像格式已过时。请使用命令行工具“hdiutil”将其转换为新格式",
+        description: "此问题常出现在版本较旧的mac OS中，通常来说问题并不出在磁盘映像本身，通过系统自带的“磁盘工具”应用程序打开此磁盘映像即可。",
+        imageName: "issue9-placeholder",
     )
 ]
 
@@ -80,6 +85,7 @@ struct ContentView: View {
     @State private var showMalwareFixSheet = false
     @State private var showAppStoreFixSheet = false
     @State private var showUnverifiedDeveloperFixSheet = false
+    @State private var showDiskImageFixSheet = false
 
     var body: some View {
         GeometryReader { _ in
@@ -159,7 +165,7 @@ struct ContentView: View {
                                         .fill(Color.gray.opacity(0.15))
                                         .frame(height: 150)
                                         .overlay(
-                                            Text("【图片占位：\(issue.imageName)】")
+                                            Text("【图片占位：(issue.imageName)】")
                                                 .foregroundColor(.gray)
                                         )
 
@@ -270,7 +276,7 @@ struct ContentView: View {
                                         .fill(Color.gray.opacity(0.15))
                                         .frame(height: 150)
                                         .overlay(
-                                            Text("【图片占位：\\(issue.imageName)】")
+                                            Text("【图片占位：\(issue.imageName)】")
                                                 .foregroundColor(.gray)
                                         )
 
@@ -306,6 +312,60 @@ struct ContentView: View {
                                 .sheet(isPresented: $showUnverifiedDeveloperFixSheet) {
                                     UnverifiedDeveloperFixView {
                                         showUnverifiedDeveloperFixSheet = false
+                                    }
+                                }
+                            } else if issue.title == "未能打开磁盘映像。磁盘映像格式已过时。请使用命令行工具“hdiutil”将其转换为新格式" {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(issue.title)
+                                        .font(.title2)
+                                        .bold()
+                                    ScrollView {
+                                        Text(issue.description)
+                                            .font(.body)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(minHeight: 50, maxHeight: 120)
+
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(height: 150)
+                                        .overlay(
+                                            Text("【图片占位：\(issue.imageName)】")
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    Divider()
+
+                                    HStack {
+                                        Spacer()
+                                        HStack {
+    Spacer()
+    VStack {
+        Spacer()
+        Button(action: {
+            showDiskImageFixSheet = true
+        }) {
+            Text("查看解决方案")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(minWidth: 180)
+        }
+        .padding()
+        .background(Color.accentColor.opacity(0.12))
+        .cornerRadius(10)
+        Spacer()
+    }
+    Spacer()
+}
+                                        .padding()
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .cornerRadius(8)
+                                        Spacer()
+                                    }
+                                }
+                                .padding(.top, 6)
+                                .sheet(isPresented: $showDiskImageFixSheet) {
+                                    DiskImageFixView {
+                                        showDiskImageFixSheet = false
                                     }
                                 }
                             } else {
