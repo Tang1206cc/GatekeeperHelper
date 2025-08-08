@@ -59,6 +59,11 @@ let knownIssues: [UnlockIssue] = [
         title: "无法打开“xxx”，因为无法验证开发者。",
         description: "即便你的Mac已经允许安装App Store和已知开发者的应用，但当你尝试安装的某些App时，可能也还会看到此类警告。",
         imageName: "issue7-placeholder",
+    ),
+    UnlockIssue(
+        title: "Apple无法验证“xxx”是否包含可能危害Mac安全或泄漏隐私的恶意软件",
+        description: "此问题是“无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件”的另一种表述。macOS Catalina 及更高版本要求 App 必须通过 Apple 的公证（Notarization）验证，未通过验证会提示类似此警告，解决方法与前者相同。",
+        imageName: "issue8-placeholder",
     )
 ]
 
@@ -138,7 +143,7 @@ struct ContentView: View {
 
                     VStack(alignment: .leading, spacing: 16) {
                         if let issue = selectedIssue {
-                            if issue.title == "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。" {
+                            if issue.title == "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。" || issue.title == "Apple无法验证“xxx”是否包含可能危害Mac安全或泄漏隐私的恶意软件" {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text(issue.title)
                                         .font(.title2)
@@ -188,7 +193,10 @@ struct ContentView: View {
                                 }
                                 .padding(.top, 6)
                                 .sheet(isPresented: $showMalwareFixSheet) {
-                                    MalwareCheckFixView {
+                                    let sheetTitle = issue.title == "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。" ?
+                                        "解决方案：无法打开 App，因为 Apple 无法检查其是否包含恶意软件" :
+                                        "解决方案：Apple无法验证App是否包含可能危害Mac安全或泄漏隐私的恶意软件"
+                                    MalwareCheckFixView(title: sheetTitle) {
                                         showMalwareFixSheet = false
                                     }
                                 }
