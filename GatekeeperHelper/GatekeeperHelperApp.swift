@@ -3,17 +3,32 @@ import SwiftUI
 @main
 struct GatekeeperHelperApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @AppStorage("themeMode") private var themeMode = ThemeMode.system.rawValue
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 1020, minHeight: 580) // ✅ 正确：作用于 ContentView，而不是 WindowGroup
+                .frame(minWidth: 1020, minHeight: 580)
+                .preferredColorScheme(currentColorScheme)
         }
-        .defaultSize(width: 1120, height: 660) // ✅ 默认打开窗口尺寸
+        .defaultSize(width: 1120, height: 660)
         .windowStyle(DefaultWindowStyle())
+        .commands {
+            CommandGroup(replacing: .appSettings) {
+                Button("偏好设置…") {
+                    NSApp.sendAction(#selector(AppDelegate.showPreferencesWindow(_:)), to: nil, from: nil)
+                }
+                .keyboardShortcut(",", modifiers: [.command])
+            }
+        }
+    }
 
-        Settings {
-            SettingsView()
+    private var currentColorScheme: ColorScheme? {
+        switch ThemeMode(rawValue: themeMode) ?? .system {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
         }
     }
 }
+
