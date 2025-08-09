@@ -21,6 +21,52 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return event
         }
         AppSettings.applyLaunchAtLogin(UserDefaults.standard.bool(forKey: "launchAtLogin"))
+        if let mainMenu = NSApp.mainMenu {
+            let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? ""
+            let translations: [String: String] = [
+                "File": "文件",
+                "Edit": "编辑",
+                "View": "查看",
+                "Window": "窗口",
+                "Help": "帮助",
+                "About \(appName)": "关于 \(appName)",
+                "Preferences…": "偏好设置…",
+                "Services": "服务",
+                "Hide \(appName)": "隐藏 \(appName)",
+                "Hide Others": "隐藏其他",
+                "Show All": "显示全部",
+                "Quit \(appName)": "退出 \(appName)",
+                "Undo": "撤销",
+                "Redo": "重做",
+                "Cut": "剪切",
+                "Copy": "复制",
+                "Paste": "粘贴",
+                "Paste and Match Style": "粘贴并匹配样式",
+                "Delete": "删除",
+                "Select All": "全选",
+                "Find": "查找",
+                "Find…": "查找…",
+                "Find Next": "查找下一个",
+                "Find Previous": "查找上一个",
+                "Use Selection for Find": "用所选内容查找",
+                "Enter Full Screen": "进入全屏",
+                "Minimize": "最小化",
+                "Zoom": "缩放",
+                "Bring All to Front": "全部置于顶层"
+            ]
+            localizeMenu(menu: mainMenu, translations: translations)
+        }
+    }
+
+    private func localizeMenu(menu: NSMenu, translations: [String: String]) {
+        for item in menu.items {
+            if let title = translations[item.title] {
+                item.title = title
+            }
+            if let submenu = item.submenu {
+                localizeMenu(menu: submenu, translations: translations)
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
