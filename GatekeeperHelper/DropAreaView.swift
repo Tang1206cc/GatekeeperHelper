@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 
 struct DropAreaView: View {
     var allowedExtensions: [String] = ["app"]
+    var instruction: String = "拖入或点按以选择需要修复的 App"
     var onAppPicked: (URL) -> Void
 
     var body: some View {
@@ -25,7 +26,7 @@ struct DropAreaView: View {
                     .font(.system(size: 32))
                     .foregroundColor(.accentColor)
 
-                Text("拖入或点按以选择需要修复的 App")
+                Text(instruction)
                     .font(.body)
                     .foregroundColor(.secondary)
             }

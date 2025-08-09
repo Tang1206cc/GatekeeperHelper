@@ -599,7 +599,10 @@ struct ContentView: View {
                                         .padding(.vertical, 2)
                                     }
 
-                                    DropAreaView(allowedExtensions: selectedIssue?.title == "文件XXX.command无法执行，因为您没有正确的访问权限" ? ["command"] : ["app"]) { url in
+                                    DropAreaView(
+                                        allowedExtensions: selectedIssue?.title == "文件XXX.command无法执行，因为您没有正确的访问权限" ? ["command"] : ["app"],
+                                        instruction: selectedIssue?.title == "文件XXX.command无法执行，因为您没有正确的访问权限" ? "拖入或点按以选择需要修复的.command文件" : "拖入或点按以选择需要修复的 App"
+                                    ) { url in
                                         selectedAppURL = url
                                     }
                                     .frame(height: 180)

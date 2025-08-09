@@ -235,7 +235,30 @@ struct Unlocker {
     static func chmodCommand(at url: URL) {
         let path = url.path
         let command = "/bin/chmod +x \"\(path)\""
-        _ = AuthorizationBridge.run(command: command)
+
+        var err: NSString?
+        let ok = AuthorizationTool.runCommand(command, error: &err)
+        let msg = err as String? ?? ""
+        let cancelled = msg.lowercased().contains("user canceled") || msg.lowercased().contains("user cancelled") || msg.contains("用户取消")
+
+        if !ok && cancelled {
+            RepairHistoryManager.shared.addRecord(
+                appName: url.lastPathComponent,
+                method: "chmod_command",
+                success: false
+            )
+
+            let alert = NSAlert()
+            alert.messageText = "执行修复失败"
+            alert.informativeText = "未能给予.command文件正确的执行权限。你可拷贝该指令进入终端手动执行：\n\(command)"
+            alert.addButton(withTitle: "好")
+            alert.addButton(withTitle: "拷贝指令")
+            let response = alert.runModal()
+            if response == .alertSecondButtonReturn {
+                copyToPasteboard(command)
+            }
+            return
+        }
 
         RepairHistoryManager.shared.addRecord(
             appName: url.lastPathComponent,
