@@ -231,7 +231,7 @@ struct Unlocker {
         }
     }
 
-    // MARK: - 第十三个问题：command 文件无执行权限
+    // MARK: - 第五个问题：command 文件无执行权限
     static func chmodCommand(at url: URL) {
         let path = url.path
         let command = "/bin/chmod +x \"\(path)\""

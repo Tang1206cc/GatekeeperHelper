@@ -26,71 +26,72 @@ struct UnlockIssue: Identifiable, Hashable {
 
 let knownIssues: [UnlockIssue] = [
     UnlockIssue(
-        title: "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”",
+        title: "XXX已损坏，无法打开。您应该推出磁盘映像/移到废纸篓",
         description: "macOS 的 Gatekeeper 安全机制阻止了该应用打开。您可以选择临时绕过（推荐，仅解除当前 App 的限制），或永久禁用 Gatekeeper（不推荐，会降低系统安全性）。",
-        imageName: "issue1-placeholder"
+        imageName: "issue1-placeholder",
     ),
     UnlockIssue(
-        title: "“xxx”意外退出",
+        title: "XXX意外退出",
         description: "Apple 会定期发布安全补丁，吊销一些“特定”的数字签名。在没有证书的情况下运行应用程序会导致错误消息，并且应用程序意外退出。所以需要对应用或其Unix可执行文件进行签名，有时也需要关闭 SIP。",
-        imageName: "issue2-placeholder"
+        imageName: "issue2-placeholder",
     ),
     UnlockIssue(
-        title: "“xxx软件打开失败”",
+        title: "XXX软件打开失败",
         description: "这种情况是因为当前 App 包内的 Unix 可执行文件显示为白色的文本文稿，需要赋予其可执行权限，变成黑色的 Unix 可执行文件后即可正常启动应用程序。",
-        imageName: "issue3-placeholder"
+        imageName: "issue3-placeholder",
     ),
     UnlockIssue(
-        title: "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。",
-        description: "由于在 Apple 中引入了对应用程序进行公证的强制性措施，macOS Catalina 及以上版本系统不允许您运行未经验证的应用程序，即使该应用程序已经添加开发者签名也是如此。这会导致应用程序无法运行。",
-        imageName: "issue4-placeholder"
-    ),
-    UnlockIssue(
-        title: "应用程序“xxx”无法打开。",
+        title: "应用程序XXX无法打开",
         description: "macOS 的安全机制针对某些第三方 App 是“带壳”的，此时这些软件将提示“应用程序\"xxx\"无法打开”。通过引入第三方工具进行脱壳操作即可正常打开。",
         imageName: "issue5-placeholder",
     ),
     UnlockIssue(
-        title: "无法打开“xxx”，因为它不是从App Store下载。",
+        title: "文件XXX.command无法执行，因为您没有正确的访问权限",
+        description: "当你初次运行一个.command文件时，可能会出现访问权限不足而无法正常执行的情况，这种情况通过指令授予其执行权限就可以解决。",
+        imageName: "issue13-placeholder",
+    ),
+    UnlockIssue(
+        title: "无法打开XXX，因为 Apple 无法检查其是否包含恶意软件",
+        description: "由于在 Apple 中引入了对应用程序进行公证的强制性措施，macOS Catalina 及以上版本系统不允许您运行未经验证的应用程序，即使该应用程序已经添加开发者签名也是如此。这会导致应用程序无法运行。",
+        imageName: "issue4-placeholder",
+    ),
+    UnlockIssue(
+        title: "Apple无法验证XXX是否包含可能危害 Mac 安全或泄漏隐私的恶意软件",
+        description: "此问题是“无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件”的另一种表述。macOS Catalina 及更高版本要求App 必须通过 Apple 的公证（Notarization）验证，未通过验证会提示类似此警告，解决方法与前者相同。",
+        imageName: "issue8-placeholder",
+    ),
+    UnlockIssue(
+        title: "无法打开XXX，因为它不是从 App Store下载",
         description: "如果 Mac 是全新的或从未更改过软件安装安全性设置，其默认设置是仅允许安装来自「App Store 」的软件。而你正在安装的软件是从浏览器或其他第三方下载的时，就会看到这一警告信息。",
         imageName: "issue6-placeholder",
     ),
     UnlockIssue(
-        title: "无法打开“xxx”，因为无法验证开发者。",
+        title: "无法打开XXX，因为无法验证开发者",
         description: "即便你的Mac已经允许安装App Store和已知开发者的应用，但当你尝试安装的某些App时，可能也还会看到此类警告。",
         imageName: "issue7-placeholder",
     ),
     UnlockIssue(
-        title: "Apple无法验证“xxx”是否包含可能危害Mac安全或泄漏隐私的恶意软件",
-        description: "此问题是“无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件”的另一种表述。macOS Catalina 及更高版本要求 App 必须通过 Apple 的公证（Notarization）验证，未通过验证会提示类似此警告，解决方法与前者相同。",
-        imageName: "issue8-placeholder",
-    ),
-    UnlockIssue(
-        title: "未能打开磁盘映像。磁盘映像格式已过时。请使用命令行工具“hdiutil”将其转换为新格式",
-        description: "此问题常出现在版本较旧的mac OS中，通常来说问题并不出在磁盘映像本身，通过系统自带的“磁盘工具”应用程序打开此磁盘映像即可。",
-        imageName: "issue9-placeholder",
-    ),
-    UnlockIssue(
-        title: "无法打开“xxx”，因为“安全策略”已设为“某某安全性”",
+        title: "无法打开XXX，因为“安全策略”已设为“某某安全性”",
         description: "此问题常出现在安装某些涉及较高权限的App或非正版App时，需要进入Mac恢复模式才能进行修改，并且一般情况下不建议进行修改。",
         imageName: "issue10-placeholder",
     ),
     UnlockIssue(
+        title: "未能打开磁盘映像。磁盘映像格式已过时。请使用命令行工具“hdiutil”将其转换为新格式",
+        description: "此问题常出现在版本较旧的macOS中，通常来说问题并不出在磁盘映像本身，通过系统自带的“磁盘工具”应用程序打开此磁盘映像即可。",
+        imageName: "issue9-placeholder",
+    ),
+    UnlockIssue(
         title: "启动软件时一直弹窗输入密码或存储密码/钥匙串",
-        description: "有些时候mac OS的“密码/钥匙串”功能会出现崩溃或报错，而导致启动某些App时频繁弹窗提示存储钥匙串，大多数情况下进入访达清空对应软件的钥匙串文件就可解决这一问题。",
+        description: "有些时候macOS的“密码/钥匙串”功能会出现崩溃或报错，而导致启动某些App时频繁弹窗提示存储钥匙串，大多数情况下进入访达清空对应软件的钥匙串文件就可解决这一问题。",
         imageName: "issue11-placeholder",
     ),
     UnlockIssue(
-        title: "安装Adobe软件时运行Install 文件后报错",
+        title: "安装 Adobe软件时运行 Install文件后报错",
         description: "当你下载完毕Adobe家族的软件，准备安装而点击dmg（或安装包）内的“Install”文件时，出现“Error”“The installation cannot continue as the installer file may be damaged. Download the installer file again.”的报错时可以尝试下面方法。",
         imageName: "issue12-placeholder",
     ),
-    UnlockIssue(
-        title: "文件\"xxx.command\"无法执行，因为您没有正确的访问权限",
-        description: "当你初次运行一个.command文件时，可能会出现访问权限不足而无法正常执行的情况，这种情况通过指令授予其执行权限就可以解决。",
-        imageName: "issue13-placeholder",
-    )
 ]
+
 
 struct ContentView: View {
     @State private var selectedIssue: UnlockIssue? = knownIssues.first
@@ -172,7 +173,7 @@ struct ContentView: View {
 
                     VStack(alignment: .leading, spacing: 16) {
                         if let issue = selectedIssue {
-                            if issue.title == "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。" || issue.title == "Apple无法验证“xxx”是否包含可能危害Mac安全或泄漏隐私的恶意软件" {
+                            if issue.title == "无法打开XXX，因为 Apple 无法检查其是否包含恶意软件" || issue.title == "Apple无法验证XXX是否包含可能危害 Mac 安全或泄漏隐私的恶意软件" {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text(issue.title)
                                         .font(.title2)
@@ -222,14 +223,14 @@ struct ContentView: View {
                                 }
                                 .padding(.top, 6)
                                 .sheet(isPresented: $showMalwareFixSheet) {
-                                    let sheetTitle = issue.title == "无法打开“xxx”，因为 Apple 无法检查其是否包含恶意软件。" ?
+                                    let sheetTitle = issue.title == "无法打开XXX，因为 Apple 无法检查其是否包含恶意软件" ?
                                         "解决方案：无法打开 App，因为 Apple 无法检查其是否包含恶意软件" :
-                                        "解决方案：Apple无法验证App是否包含可能危害Mac安全或泄漏隐私的恶意软件"
+                                        "解决方案：Apple无法验证App是否包含可能危害 Mac 安全或泄漏隐私的恶意软件"
                                     MalwareCheckFixView(title: sheetTitle) {
                                         showMalwareFixSheet = false
                                     }
                                 }
-                            } else if issue.title == "无法打开“xxx”，因为它不是从App Store下载。" {
+                            } else if issue.title == "无法打开XXX，因为它不是从 App Store下载" {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text(issue.title)
                                         .font(.title2)
@@ -283,7 +284,7 @@ struct ContentView: View {
                                         showAppStoreFixSheet = false
                                     }
                                 }
-                            } else if issue.title == "无法打开“xxx”，因为无法验证开发者。" {
+                            } else if issue.title == "无法打开XXX，因为无法验证开发者" {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text(issue.title)
                                         .font(.title2)
@@ -391,7 +392,7 @@ struct ContentView: View {
                                     showDiskImageFixSheet = false
                                 }
                             }
-                            } else if issue.title == "无法打开“xxx”，因为“安全策略”已设为“某某安全性”" {
+                            } else if issue.title == "无法打开XXX，因为“安全策略”已设为“某某安全性”" {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text(issue.title)
                                         .font(.title2)
@@ -499,7 +500,7 @@ struct ContentView: View {
                                         showKeychainFixSheet = false
                                     }
                                 }
-                            } else if issue.title == "安装Adobe软件时运行Install 文件后报错" {
+                            } else if issue.title == "安装 Adobe软件时运行 Install文件后报错" {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Text(issue.title)
                                         .font(.title2)
@@ -577,7 +578,7 @@ struct ContentView: View {
 
                                     Divider()
 
-                                    if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
+                                    if issue.title == "XXX已损坏，无法打开。您应该推出磁盘映像/移到废纸篓" {
                                         HStack(spacing: 8) {
                                             Image(systemName: "shield.lefthalf.filled")
                                                 .imageScale(.medium)
@@ -598,13 +599,13 @@ struct ContentView: View {
                                         .padding(.vertical, 2)
                                     }
 
-                                    DropAreaView(allowedExtensions: selectedIssue?.title == "文件\"xxx.command\"无法执行，因为您没有正确的访问权限" ? ["command"] : ["app"]) { url in
+                                    DropAreaView(allowedExtensions: selectedIssue?.title == "文件XXX.command无法执行，因为您没有正确的访问权限" ? ["command"] : ["app"]) { url in
                                         selectedAppURL = url
                                     }
                                     .frame(height: 180)
                                     .padding(.top, 10)
                                     .sheet(item: $selectedAppURL) { url in
-                                        if selectedIssue?.title == "应用程序“xxx”无法打开。" {
+                                        if selectedIssue?.title == "应用程序XXX无法打开" {
                                             UPXFixModalView(appURL: url)
                                         } else {
                                             FixAppModalView(

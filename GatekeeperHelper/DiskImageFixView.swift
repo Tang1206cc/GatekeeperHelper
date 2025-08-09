@@ -28,7 +28,7 @@ struct DiskImageFixView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("这是一种当mac OS打开某些磁盘映像（dmg）时的报错现象。")
+                    Text("这是一种当macOS打开某些磁盘映像（dmg）时的报错现象。")
 
                     Text("解决方式如下：")
 
