@@ -74,6 +74,11 @@ let knownIssues: [UnlockIssue] = [
         title: "无法打开“xxx”，因为“安全策略”已设为“某某安全性”",
         description: "此问题常出现在安装某些涉及较高权限的App或非正版App时，需要进入Mac恢复模式才能进行修改，并且一般情况下不建议进行修改。",
         imageName: "issue10-placeholder",
+    ),
+    UnlockIssue(
+        title: "启动软件时一直弹窗输入密码或存储密码/钥匙串",
+        description: "有些时候mac OS的“密码/钥匙串”功能会出现崩溃或报错，而导致启动某些App时频繁弹窗提示存储钥匙串，大多数情况下进入访达清空对应软件的钥匙串文件就可解决这一问题。",
+        imageName: "issue11-placeholder",
     )
 ]
 
@@ -92,6 +97,7 @@ struct ContentView: View {
     @State private var showUnverifiedDeveloperFixSheet = false
     @State private var showDiskImageFixSheet = false
     @State private var showSecurityPolicyFixSheet = false
+    @State private var showKeychainFixSheet = false
 
     var body: some View {
         GeometryReader { _ in
@@ -423,9 +429,63 @@ struct ContentView: View {
                                     }
                                 }
                                 .padding(.top, 6)
-                                .sheet(isPresented: $showSecurityPolicyFixSheet) {
-                                    SecurityPolicyFixView {
-                                        showSecurityPolicyFixSheet = false
+                            .sheet(isPresented: $showSecurityPolicyFixSheet) {
+                                SecurityPolicyFixView {
+                                    showSecurityPolicyFixSheet = false
+                                }
+                            }
+                            } else if issue.title == "启动软件时一直弹窗输入密码或存储密码/钥匙串" {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(issue.title)
+                                        .font(.title2)
+                                        .bold()
+                                    ScrollView {
+                                        Text(issue.description)
+                                            .font(.body)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(minHeight: 50, maxHeight: 120)
+
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(height: 150)
+                                        .overlay(
+                                            Text("【图片占位：\\(issue.imageName)】")
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    Divider()
+
+                                    HStack {
+                                        Spacer()
+                                        HStack {
+    Spacer()
+    VStack {
+        Spacer()
+        Button(action: {
+            showKeychainFixSheet = true
+        }) {
+            Text("查看解决方案")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(minWidth: 180)
+        }
+        .padding()
+        .background(Color.accentColor.opacity(0.12))
+        .cornerRadius(10)
+        Spacer()
+    }
+    Spacer()
+}
+                                        .padding()
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .cornerRadius(8)
+                                        Spacer()
+                                    }
+                                }
+                                .padding(.top, 6)
+                                .sheet(isPresented: $showKeychainFixSheet) {
+                                    KeychainFixView {
+                                        showKeychainFixSheet = false
                                     }
                                 }
                             } else {
