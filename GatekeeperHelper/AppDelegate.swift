@@ -21,6 +21,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return event
         }
         AppSettings.applyLaunchAtLogin(UserDefaults.standard.bool(forKey: "launchAtLogin"))
+
+        if let mainMenu = NSApp.mainMenu {
+            let titles = ["文件", "编辑", "查看", "窗口", "帮助"]
+            for (index, title) in titles.enumerated() {
+                mainMenu.item(at: index + 1)?.title = title
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
