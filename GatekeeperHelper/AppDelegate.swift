@@ -22,10 +22,52 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         AppSettings.applyLaunchAtLogin(UserDefaults.standard.bool(forKey: "launchAtLogin"))
 
+        // 保留的“最新方案”：递归本地化完整菜单
         if let mainMenu = NSApp.mainMenu {
-            let titles = ["文件", "编辑", "查看", "窗口", "帮助"]
-            for (index, title) in titles.enumerated() {
-                mainMenu.item(at: index + 1)?.title = title
+            let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? ""
+            let translations: [String: String] = [
+                "File": "文件",
+                "Edit": "编辑",
+                "View": "查看",
+                "Window": "窗口",
+                "Help": "帮助",
+                "About \(appName)": "关于 \(appName)",
+                "Preferences…": "偏好设置…",
+                "Services": "服务",
+                "Hide \(appName)": "隐藏 \(appName)",
+                "Hide Others": "隐藏其他",
+                "Show All": "显示全部",
+                "Quit \(appName)": "退出 \(appName)",
+                "Undo": "撤销",
+                "Redo": "重做",
+                "Cut": "剪切",
+                "Copy": "复制",
+                "Paste": "粘贴",
+                "Paste and Match Style": "粘贴并匹配样式",
+                "Delete": "删除",
+                "Select All": "全选",
+                "Find": "查找",
+                "Find…": "查找…",
+                "Find Next": "查找下一个",
+                "Find Previous": "查找上一个",
+                "Use Selection for Find": "用所选内容查找",
+                "Enter Full Screen": "进入全屏",
+                "Minimize": "最小化",
+                "Zoom": "缩放",
+                "Bring All to Front": "全部置于顶层"
+            ]
+            localizeMenu(menu: mainMenu, translations: translations)
+        }
+    }
+
+    // 递归翻译菜单与子菜单
+    private func localizeMenu(menu: NSMenu, translations: [String: String]) {
+        for item in menu.items {
+            if let title = translations[item.title] {
+                item.title = title
+            }
+            if let submenu = item.submenu {
+                localizeMenu(menu: submenu, translations: translations)
             }
         }
     }
@@ -64,4 +106,3 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.settingsWindow = window
     }
 }
-
