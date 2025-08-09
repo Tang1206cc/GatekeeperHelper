@@ -84,6 +84,11 @@ let knownIssues: [UnlockIssue] = [
         title: "安装Adobe软件时运行Install 文件后报错",
         description: "当你下载完毕Adobe家族的软件，准备安装而点击dmg（或安装包）内的“Install”文件时，出现“Error”“The installation cannot continue as the installer file may be damaged. Download the installer file again.”的报错时可以尝试下面方法。",
         imageName: "issue12-placeholder",
+    ),
+    UnlockIssue(
+        title: "文件\"xxx.command\"无法执行，因为您没有正确的访问权限",
+        description: "当你初次运行一个.command文件时，可能会出现访问权限不足而无法正常执行的情况，这种情况通过指令授予其执行权限就可以解决。",
+        imageName: "issue13-placeholder",
     )
 ]
 
@@ -593,7 +598,7 @@ struct ContentView: View {
                                         .padding(.vertical, 2)
                                     }
 
-                                    DropAreaView { url in
+                                    DropAreaView(allowedExtensions: selectedIssue?.title == "文件\"xxx.command\"无法执行，因为您没有正确的访问权限" ? ["command"] : ["app"]) { url in
                                         selectedAppURL = url
                                     }
                                     .frame(height: 180)
