@@ -21,6 +21,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return event
         }
         AppSettings.applyLaunchAtLogin(UserDefaults.standard.bool(forKey: "launchAtLogin"))
+
+        // 保留的“最新方案”：递归本地化完整菜单
         if let mainMenu = NSApp.mainMenu {
             let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? ""
             let translations: [String: String] = [
@@ -58,6 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // 递归翻译菜单与子菜单
     private func localizeMenu(menu: NSMenu, translations: [String: String]) {
         for item in menu.items {
             if let title = translations[item.title] {
@@ -103,4 +106,3 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self.settingsWindow = window
     }
 }
-
