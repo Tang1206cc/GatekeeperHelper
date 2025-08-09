@@ -25,6 +25,11 @@ struct SettingsView: View {
                     AppSettings.applyLaunchAtLogin(value)
                 }
 
+            Text("⚠️ 可能仅在 macOS 13 及以上系统生效")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .padding(.leading, 4)
+
             HStack {
                 Text("主题模式")
                 Picker("主题模式", selection: $themeMode) {
@@ -51,7 +56,6 @@ struct SettingsView: View {
             .padding(.bottom, 8)
         }
         .padding(24)
-        .frame(width: 480, height: 320, alignment: .topLeading)
+        .frame(width: 480, height: 350, alignment: .topLeading)
     }
 }
-
