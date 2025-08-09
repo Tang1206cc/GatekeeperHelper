@@ -79,6 +79,11 @@ let knownIssues: [UnlockIssue] = [
         title: "启动软件时一直弹窗输入密码或存储密码/钥匙串",
         description: "有些时候mac OS的“密码/钥匙串”功能会出现崩溃或报错，而导致启动某些App时频繁弹窗提示存储钥匙串，大多数情况下进入访达清空对应软件的钥匙串文件就可解决这一问题。",
         imageName: "issue11-placeholder",
+    ),
+    UnlockIssue(
+        title: "安装Adobe软件时运行Install 文件后报错",
+        description: "当你下载好Adobe家族的软件准备安装而点击dmg或安装包内的“Install”文件时，出现“Error”“The installation cannot continue as the installer file may be damaged. Download the installer file again.”报错时可以尝试下面方法。",
+        imageName: "issue12-placeholder",
     )
 ]
 
@@ -98,6 +103,7 @@ struct ContentView: View {
     @State private var showDiskImageFixSheet = false
     @State private var showSecurityPolicyFixSheet = false
     @State private var showKeychainFixSheet = false
+    @State private var showAdobeInstallFixSheet = false
 
     var body: some View {
         GeometryReader { _ in
@@ -486,6 +492,60 @@ struct ContentView: View {
                                 .sheet(isPresented: $showKeychainFixSheet) {
                                     KeychainFixView {
                                         showKeychainFixSheet = false
+                                    }
+                                }
+                            } else if issue.title == "安装Adobe软件时运行Install 文件后报错" {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(issue.title)
+                                        .font(.title2)
+                                        .bold()
+                                    ScrollView {
+                                        Text(issue.description)
+                                            .font(.body)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(minHeight: 50, maxHeight: 120)
+
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(height: 150)
+                                        .overlay(
+                                            Text("【图片占位：\(issue.imageName)】")
+                                                .foregroundColor(.gray)
+                                        )
+
+                                    Divider()
+
+                                    HStack {
+                                        Spacer()
+                                        HStack {
+    Spacer()
+    VStack {
+        Spacer()
+        Button(action: {
+            showAdobeInstallFixSheet = true
+        }) {
+            Text("查看解决方案")
+                .font(.system(size: 16, weight: .semibold))
+                .frame(minWidth: 180)
+        }
+        .padding()
+        .background(Color.accentColor.opacity(0.12))
+        .cornerRadius(10)
+        Spacer()
+    }
+    Spacer()
+}
+                                        .padding()
+                                        .background(Color.accentColor.opacity(0.1))
+                                        .cornerRadius(8)
+                                        Spacer()
+                                    }
+                                }
+                                .padding(.top, 6)
+                                .sheet(isPresented: $showAdobeInstallFixSheet) {
+                                    AdobeInstallFixView {
+                                        showAdobeInstallFixSheet = false
                                     }
                                 }
                             } else {
