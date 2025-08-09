@@ -28,11 +28,11 @@ struct AdobeInstallFixView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("这可能是因为Install文件包内的Unix可执行文件错误所致。")
+                    Text("这可能是由Install文件包内Unix可执行文件的错误所致。")
 
                     Text("解决方式如下：")
 
-                    Text("1. 打开用于安装Adobe软件的磁盘映像（dmg）或安装包，找到“Install”文件，选中并右击选择“显示包内容”。\n2. 在包内沿Contents-MacOS找到Install的Unix可执行文件并双击。\n3. 之后就可以正常执行安装了。")
+                    Text("1. 打开用于安装Adobe软件的磁盘映像（dmg）或安装包，找到“Install”文件，选中并右击选择“显示包内容”。\n2. 在包内「Contents-MacOS」找到Install的Unix可执行文件并双击。\n3. 之后就可以正常执行安装了。")
 
                     Rectangle()
                         .fill(Color.gray.opacity(0.1))

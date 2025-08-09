@@ -82,7 +82,7 @@ let knownIssues: [UnlockIssue] = [
     ),
     UnlockIssue(
         title: "安装Adobe软件时运行Install 文件后报错",
-        description: "当你下载好Adobe家族的软件准备安装而点击dmg或安装包内的“Install”文件时，出现“Error”“The installation cannot continue as the installer file may be damaged. Download the installer file again.”报错时可以尝试下面方法。",
+        description: "当你下载完毕Adobe家族的软件，准备安装而点击dmg（或安装包）内的“Install”文件时，出现“Error”“The installation cannot continue as the installer file may be damaged. Download the installer file again.”的报错时可以尝试下面方法。",
         imageName: "issue12-placeholder",
     )
 ]
