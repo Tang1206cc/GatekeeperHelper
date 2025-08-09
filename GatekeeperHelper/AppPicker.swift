@@ -7,14 +7,19 @@
 
 import Foundation
 import AppKit
+import UniformTypeIdentifiers
 
 struct AppPicker {
-    static func chooseApp() -> URL? {
+    static func chooseApp(allowedExtensions: [String] = ["app"]) -> URL? {
         let panel = NSOpenPanel()
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
-        panel.allowedContentTypes = [.application]
+        if #available(macOS 11.0, *) {
+            panel.allowedContentTypes = allowedExtensions.compactMap { UTType(filenameExtension: $0) }
+        } else {
+            panel.allowedFileTypes = allowedExtensions
+        }
 
         if panel.runModal() == .OK {
             return panel.url

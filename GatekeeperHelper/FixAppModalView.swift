@@ -33,7 +33,7 @@ struct FixAppModalView: View {
                     .padding(.bottom, 4)
             }
 
-            Text("已选择 App")
+            Text(appURL.pathExtension.lowercased() == "command" ? "已选择文件" : "已选择 App")
                 .font(.headline)
 
             Text(appURL.path)
@@ -146,6 +146,12 @@ struct FixAppModalView: View {
                 // ---------------------------
                 case "“xxx软件打开失败”":
                     Unlocker.chmodFixExecutable(in: appURL)
+
+                // ---------------------------
+                // 第十三类问题：command 无法执行
+                // ---------------------------
+                case "文件\"xxx.command\"无法执行，因为您没有正确的访问权限":
+                    Unlocker.chmodCommand(at: appURL)
 
                 default:
                     break

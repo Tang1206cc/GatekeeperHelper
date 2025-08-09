@@ -231,6 +231,29 @@ struct Unlocker {
         }
     }
 
+    // MARK: - 第十三个问题：command 文件无执行权限
+    static func chmodCommand(at url: URL) {
+        let path = url.path
+        let command = "/bin/chmod +x \"\(path)\""
+        _ = AuthorizationBridge.run(command: command)
+
+        RepairHistoryManager.shared.addRecord(
+            appName: url.lastPathComponent,
+            method: "chmod_command",
+            success: true
+        )
+
+        let alert = NSAlert()
+        alert.messageText = "执行修复成功"
+        alert.informativeText = "已给予.command文件正确的执行权限，你可尝试重新运行。\n若仍然没有正确的执行权限，你可拷贝该指令进入终端手动执行：\n\(command)"
+        alert.addButton(withTitle: "好")
+        alert.addButton(withTitle: "拷贝指令")
+        let response = alert.runModal()
+        if response == .alertSecondButtonReturn {
+            copyToPasteboard(command)
+        }
+    }
+
     // MARK: - 状态判断工具
 
     /// Gatekeeper 是否开启（“任何来源”已取消）

@@ -10,6 +10,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct DropAreaView: View {
+    var allowedExtensions: [String] = ["app"]
     var onAppPicked: (URL) -> Void
 
     var body: some View {
@@ -31,7 +32,7 @@ struct DropAreaView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if let url = AppPicker.chooseApp() {
+            if let url = AppPicker.chooseApp(allowedExtensions: allowedExtensions) {
                 onAppPicked(url)
             }
         }
@@ -39,7 +40,7 @@ struct DropAreaView: View {
             providers.first?.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
                 guard let data = item as? Data,
                       let url = URL(dataRepresentation: data, relativeTo: nil),
-                      url.pathExtension == "app" else { return }
+                      allowedExtensions.contains(url.pathExtension.lowercased()) else { return }
                 DispatchQueue.main.async {
                     onAppPicked(url)
                 }
