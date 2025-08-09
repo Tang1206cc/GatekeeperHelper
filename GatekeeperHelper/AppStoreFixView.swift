@@ -29,7 +29,7 @@ struct AppStoreFixView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("这是由于Mac OS的软件来源安全性设置默认是仅允许安装来自「App Store 」的软件，进入设置调整修改即可。")
+                    Text("这是由于macOS的软件来源安全性设置默认是仅允许安装来自「App Store 」的软件，进入设置调整修改即可。")
 
                     Text("解决方式如下：")
 

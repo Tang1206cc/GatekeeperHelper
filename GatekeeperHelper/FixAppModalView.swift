@@ -43,7 +43,7 @@ struct FixAppModalView: View {
                 .padding(.horizontal)
 
             // 第一类问题
-            if issue.title == "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”" {
+            if issue.title == "XXX已损坏，无法打开。您应该推出磁盘映像/移到废纸篓" {
                 Picker("选择解锁方式", selection: $selectedMethod) {
                     ForEach(UnlockMethod.allCases, id: \.self) { method in
                         Text(method.description).tag(method)
@@ -55,7 +55,7 @@ struct FixAppModalView: View {
             }
 
             // 第二类问题
-            if issue.title == "“xxx”意外退出" {
+            if issue.title == "XXX意外退出" {
                 Picker("选择签名方式", selection: $selectedAdvancedMethod) {
                     ForEach(AdvancedUnlockMethod.allCases, id: \.self) { method in
                         Text(method.description).tag(method)
@@ -67,12 +67,12 @@ struct FixAppModalView: View {
             }
 
             Button("立即修复") {
-                switch issue.title {
+            switch issue.title {
 
                 // ---------------------------
                 // 第一类问题：“xxx已损坏…”
                 // ---------------------------
-                case "“xxx已损坏，无法打开。您应该推出磁盘映像/移到废纸篓”":
+                case "XXX已损坏，无法打开。您应该推出磁盘映像/移到废纸篓":
 
                     if selectedMethod == .spctl {
                         // 仅此路径：不做复查，默认成功；取消时静默退出并关闭弹窗
@@ -138,19 +138,19 @@ struct FixAppModalView: View {
                 // ---------------------------
                 // 第二类问题：“xxx”意外退出
                 // ---------------------------
-                case "“xxx”意外退出":
+                case "XXX意外退出":
                     Unlocker.unlock(appAt: appURL, withAdvancedMethod: selectedAdvancedMethod)
 
                 // ---------------------------
                 // 第三类问题：“xxx软件打开失败”
                 // ---------------------------
-                case "“xxx软件打开失败”":
+                case "XXX软件打开失败":
                     Unlocker.chmodFixExecutable(in: appURL)
 
                 // ---------------------------
-                // 第十三类问题：command 无法执行
+                // 第五类问题：command 无法执行
                 // ---------------------------
-                case "文件\"xxx.command\"无法执行，因为您没有正确的访问权限":
+                case "文件XXX.command无法执行，因为您没有正确的访问权限":
                     Unlocker.chmodCommand(at: appURL)
 
                 default:

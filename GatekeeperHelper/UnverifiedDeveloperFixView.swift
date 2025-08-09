@@ -29,7 +29,7 @@ struct UnverifiedDeveloperFixView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("这是由于虽然mac OS的软件安装安全性设置已经允许安装App Store和已知开发者的应用，但由于某些应用不属于“已知开发者”范畴或一系列其他原因，使你仍然看到此类警告")
+                    Text("这是由于虽然macOS的软件安装安全性设置已经允许安装App Store和已知开发者的应用，但由于某些应用不属于“已知开发者”范畴或一系列其他原因，使你仍然看到此类警告")
 
                     Text("解决方式如下：")
 
