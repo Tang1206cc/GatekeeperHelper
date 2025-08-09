@@ -34,19 +34,23 @@ struct SheetWrapperView: View {
 
                         HStack(spacing: 32) {
                             VStack(spacing: 8) {
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.2))
+                                Image("donation_wechat")
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 120, height: 120)
-                                    .overlay(Text("微信").foregroundColor(.gray))
-                                Text("微信").font(.caption).foregroundColor(.secondary)
+                                Text("微信")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
 
                             VStack(spacing: 8) {
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.2))
+                                Image("donation_alipay")
+                                    .resizable()
+                                    .scaledToFit()
                                     .frame(width: 120, height: 120)
-                                    .overlay(Text("支付宝").foregroundColor(.gray))
-                                Text("支付宝").font(.caption).foregroundColor(.secondary)
+                                Text("支付宝")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                         }
                         .padding(.top, 8)
