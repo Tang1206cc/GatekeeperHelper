@@ -183,7 +183,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -238,7 +238,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -290,7 +290,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -342,7 +342,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -394,7 +394,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -446,7 +446,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -498,7 +498,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
@@ -552,7 +552,7 @@ struct ContentView: View {
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
-                                    .frame(maxHeight: 120)
+                                    .frame(minHeight: 0, maxHeight: 120)
 
                                     Image(issue.imageName)
                                         .resizable()
