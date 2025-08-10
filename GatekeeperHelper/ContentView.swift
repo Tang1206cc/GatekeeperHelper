@@ -642,6 +642,13 @@ struct ContentView: View {
                         }
                         .padding(.trailing, 12)
                         .padding(.bottom, 12)
+
+                        Text("部分信息与素材转载至https://foxirj.com，GatekeeperHelper开源免费，仅供学习交流，侵权请联系删除。")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.bottom, 12)
                     }
                     .padding()
                 }
