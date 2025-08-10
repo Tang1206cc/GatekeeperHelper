@@ -179,7 +179,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -188,7 +188,8 @@ struct ContentView: View {
                                     Image(issue.imageName)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(height: 150)
+                                        .frame(height: 170)
+                                        .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -233,7 +234,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -242,7 +243,8 @@ struct ContentView: View {
                                       Image(issue.imageName)
                                       .resizable()
                                       .scaledToFit()
-                                      .frame(height: 150)
+                                      .frame(height: 170)
+                                      .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -284,7 +286,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -293,7 +295,8 @@ struct ContentView: View {
                                     Image(issue.imageName)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(height: 150)
+                                        .frame(height: 170)
+                                        .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -335,7 +338,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -344,7 +347,8 @@ struct ContentView: View {
                                       Image(issue.imageName)
                                           .resizable()
                                           .scaledToFit()
-                                          .frame(height: 150)
+                                          .frame(height: 170)
+                                          .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -386,7 +390,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -395,7 +399,8 @@ struct ContentView: View {
                                       Image(issue.imageName)
                                           .resizable()
                                           .scaledToFit()
-                                          .frame(height: 150)
+                                          .frame(height: 170)
+                                          .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -437,7 +442,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -446,7 +451,8 @@ struct ContentView: View {
                                     Image(issue.imageName)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(height: 150)
+                                        .frame(height: 170)
+                                        .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -488,7 +494,7 @@ struct ContentView: View {
                                         .font(.title2)
                                         .bold()
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -497,7 +503,8 @@ struct ContentView: View {
                                       Image(issue.imageName)
                                           .resizable()
                                           .scaledToFit()
-                                          .frame(height: 150)
+                                          .frame(height: 170)
+                                          .frame(maxWidth: .infinity)
 
                                     Divider()
 
@@ -541,7 +548,7 @@ struct ContentView: View {
                                         .layoutPriority(1)
 
                                     ScrollView {
-                                        Text(issue.description)
+                                        Text("　　" + issue.description)
                                             .font(.body)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -550,7 +557,8 @@ struct ContentView: View {
                                       Image(issue.imageName)
                                           .resizable()
                                           .scaledToFit()
-                                          .frame(height: 150)
+                                          .frame(height: issue.title == "应用程序XXX无法打开" ? 150 : 170)
+                                          .frame(maxWidth: .infinity)
 
                                     Divider()
 
