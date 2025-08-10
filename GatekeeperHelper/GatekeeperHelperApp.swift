@@ -11,7 +11,7 @@ struct GatekeeperHelperApp: App {
                 .frame(minWidth: 1020, minHeight: 580)
                 .preferredColorScheme(currentColorScheme)
         }
-        .defaultSize(width: 1120, height: 700)
+        .defaultSize(width: 1120, height: 800)
         .windowStyle(DefaultWindowStyle())
         .commands {
             CommandGroup(replacing: .appSettings) {
