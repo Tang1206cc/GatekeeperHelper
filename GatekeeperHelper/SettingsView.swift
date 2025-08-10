@@ -32,11 +32,12 @@ struct SettingsView: View {
 
             HStack {
                 Text("主题模式")
-                Picker("主题模式", selection: $themeMode) {
+                Picker("", selection: $themeMode) {
                     ForEach(ThemeMode.allCases) { mode in
                         Text(mode.displayName).tag(mode.rawValue)
                     }
                 }
+                .labelsHidden()
                 .pickerStyle(SegmentedPickerStyle())
                 .frame(maxWidth: 220)
             }
