@@ -647,11 +647,14 @@ struct ContentView: View {
                             .font(.footnote)
                             .foregroundColor(.gray)
                             .lineLimit(1)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                            .multilineTextAlignment(.trailing)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                             .padding(.bottom, 12)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(minWidth: 960, minHeight: 640)
         }

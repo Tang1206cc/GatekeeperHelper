@@ -63,7 +63,8 @@ struct AppStoreFixView: View {
                 .font(.footnote)
                 .foregroundColor(.gray)
                 .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(20)
         .frame(minWidth: 620, minHeight: 460)
