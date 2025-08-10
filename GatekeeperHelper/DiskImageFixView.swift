@@ -57,7 +57,7 @@ struct DiskImageFixView: View {
                 .keyboardShortcut(.defaultAction)
             }
 
-            Text("部分信息与素材转载至https://foxirj.com，GatekeeperHelper开源免费，仅供学习交流，侵权请联系删除。")
+            Text("部分信息与素材转载于https://foxirj.com，GatekeeperHelper开源免费，仅供学习交流，侵权请联系删除。")
                 .font(.footnote)
                 .foregroundColor(.gray)
                 .lineLimit(1)
